@@ -273,7 +273,6 @@ const uploadAvatar = async (req, res) => {
     res.json({
       success: true,
       message: 'Upload avatar successfully',
-      urlImg,
     });
   } catch (error) {
     res.status(500).json({

@@ -2,6 +2,7 @@ const router = require('express').Router();
 const roomController = require('../../controllers/room');
 const { checkManager, checkAdmin } = require('../../middleware/authentication');
 const verifyToken = require('../../middleware/authorization');
+const verifyImage = require('../../middleware/verifyImg');
 
 // @route POST api/room/
 // @decs CREATE room
@@ -40,6 +41,17 @@ router.put(
   `/change-status/:status/:id`,
   verifyToken,
   roomController.changeStatusRoom
+);
+
+// @route PUT api/room/
+// @decs upload Image
+// @access Private
+router.put(
+  '/upload-img/:id',
+  verifyImage,
+  verifyToken,
+  checkManager,
+  roomController.uploadImg
 );
 
 module.exports = router;

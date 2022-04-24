@@ -2,6 +2,7 @@ const Room = require('../models/Room');
 const { roomValidation } = require('../tools/validation');
 const toolRoom = require('../tools/roomTool');
 const { imageDefault, capacityDefault } = require('../config/constants');
+const { uploadImage } = require('../utils/google-api');
 
 const createRoom = async (req, res) => {
   const {
@@ -263,32 +264,43 @@ const changeStatusRoom = async (req, res) => {
 };
 
 const uploadImg = async (req, res) => {
-  const userId = req.params.id;
+  const roomId = req.params.id;
   try {
-    const file = req.files.file;
+    const fileList = Object.values(req.files);
 
-    const urlImg = await uploadImage({
-      name: file.name,
-      filePath: file.tempFilePath,
-    });
+    const imgList = [];
+    for (const file of fileList) {
+      const img = await uploadImage({
+        name: file.name,
+        filePath: file.tempFilePath,
+      });
+      if (!!img) imgList.push({ src: img.webViewLink, alt: file.name });
+    }
 
-    const userUpdateCondition = { _id: userId };
+    const room = await Room.findById(roomId);
+    if (!room) {
+      res.json({
+        success: false,
+        message: 'Room not found',
+      });
+    }
+
+    const images = room?.images;
+
+    const roomUpdateCondition = { _id: roomId };
     const updated = {
-      image: {
-        src: urlImg.webViewLink,
-        alt: file.name,
-      },
+      images: [...images, ...imgList],
     };
 
-    await User.findOneAndUpdate(userUpdateCondition, updated, {
+    await Room.findOneAndUpdate(roomUpdateCondition, updated, {
       new: true,
     });
     res.json({
       success: true,
-      message: 'Upload avatar successfully',
-      urlImg,
+      message: 'Upload images successfully',
     });
   } catch (error) {
+    console.log(error);
     res.status(500).json({
       success: false,
       message: 'Internal server error',
@@ -304,4 +316,5 @@ module.exports = {
   updateRoom,
   deleteRoom,
   changeStatusRoom,
+  uploadImg,
 };

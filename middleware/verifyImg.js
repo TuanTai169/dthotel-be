@@ -7,21 +7,10 @@ const verifyImage = async (req, res, next) => {
         .status(400)
         .json({ success: false, message: 'No files were uploaded.' });
 
-    const file = req.files.file;
-
-    if (file.size > 1024 * 1024 * 5) {
-      removeTmp(file.tempFilePath);
-      return res
-        .status(400)
-        .json({ success: false, message: 'Size too large.' });
-    } //< 5MB
-
-    if (file.mimetype !== 'image/jpeg' && file.mimetype !== 'image/png') {
-      removeTmp(file.tempFilePath);
-      return res
-        .status(400)
-        .json({ success: false, message: 'File format is incorrect.' });
-    }
+    const fileList = Object.values(req.files);
+    fileList.forEach((file) => {
+      checkFile(file);
+    });
 
     next();
   } catch (err) {
@@ -33,6 +22,20 @@ const removeTmp = (path) => {
   fs.unlink(path, (err) => {
     if (err) throw err;
   });
+};
+
+const checkFile = (file) => {
+  if (file.size > 1024 * 1024 * 5) {
+    removeTmp(file.tempFilePath);
+    return res.status(400).json({ success: false, message: 'Size too large.' });
+  } //< 5MB
+
+  if (file.mimetype !== 'image/jpeg' && file.mimetype !== 'image/png') {
+    removeTmp(file.tempFilePath);
+    return res
+      .status(400)
+      .json({ success: false, message: 'File format is incorrect.' });
+  }
 };
 
 module.exports = verifyImage;

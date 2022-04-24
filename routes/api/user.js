@@ -72,7 +72,7 @@ router.put(`/delete/:id`, verifyToken, checkManager, userController.deleteUser);
 // @route UPDATE api/user/
 // @decs UPDATE FILE AVATAR
 // @access Private
-router.post(
+router.put(
   '/upload-avatar/:id',
   verifyImage,
   verifyToken,
