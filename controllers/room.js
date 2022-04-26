@@ -274,7 +274,11 @@ const uploadImg = async (req, res) => {
         name: file.name,
         filePath: file.tempFilePath,
       });
-      if (!!img) imgList.push({ src: img.webViewLink, alt: file.name });
+      if (!!img) {
+        let src = img.webViewLink.replace('file/d/', 'thumbnail?id=');
+        src = src.replace('/view?usp=drivesdk', '');
+        imgList.push({ src, alt: file.name });
+      }
     }
 
     const room = await Room.findById(roomId);

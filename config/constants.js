@@ -38,7 +38,7 @@ module.exports = {
   }),
 
   imageDefault: {
-    src: 'https://drive.google.com/file/d/1nX3Nx7japZJh9c4udtEwaRPfxS4uf-eg/view?usp=drivesdk',
+    src: 'https://drive.google.com/thumbnail?id=1wssym_RCzfAETooYk690s0mlcAv_CVhw',
     alt: 'default-img',
   },
   capacityDefault: {

@@ -24,5 +24,5 @@ router.put('/update/:id', verifyToken, customerController.updateCustomer);
 // @route PUT api/customer/
 // @decs DELETE customer
 // @access Private
-router.put(`/delete/:id`, verifyToken), customerController.deleteCustomer;
+router.put(`/delete/:id`, verifyToken, customerController.deleteCustomer);
 module.exports = router;
