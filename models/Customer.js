@@ -24,7 +24,7 @@ const CustomerSchema = new Schema(
       type: String,
     },
     numberOfPeople: {
-      adults: {
+      adult: {
         type: Number,
         min: 1,
         max: 8,

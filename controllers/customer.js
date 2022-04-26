@@ -68,7 +68,7 @@ const createCustomer = async (req, res) => {
       phone,
       idNumber,
       address,
-      numberOfPeople,
+      numberOfPeople: numberOfPeople || capacityDefault,
     });
 
     await newCustomer.save();
