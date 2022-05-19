@@ -61,7 +61,9 @@ const getAllConveniences = async (req, res) => {
 
 const getConvenienceById = async (req, res) => {
   try {
-    const convenience = await Convenience.findById(req.params.id);
+    const convenience = await Convenience.findById(req.params.id).select(
+      '-createdAt -updatedAt '
+    );
     if (!convenience)
       res.json({
         success: false,

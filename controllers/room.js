@@ -1,7 +1,12 @@
 const Room = require('../models/Room');
+const Booking = require('../models/Booking');
 const { roomValidation } = require('../tools/validation');
 const toolRoom = require('../tools/roomTool');
-const { imageDefault, capacityDefault } = require('../config/constants');
+const {
+  imageDefault,
+  capacityDefault,
+  RoomStatus,
+} = require('../config/constants');
 const { uploadImage } = require('../utils/google-api');
 
 const createRoom = async (req, res) => {
@@ -38,11 +43,11 @@ const createRoom = async (req, res) => {
       floor,
       price,
       capacity: capacity || capacityDefault,
-      desc,
-      roomType,
-      convenience,
+      desc: desc || '',
+      roomType: roomType || [],
+      convenience: convenience || [],
       images: images || imageDefault,
-      status,
+      status: status || RoomStatus.Ready.name,
     });
 
     await newRoom.save();
@@ -65,13 +70,13 @@ const getAllRooms = async (req, res) => {
     const rooms = await Room.find({ isDeleted: false })
       .populate({
         path: 'roomType',
-        select: '-isDeleted -createdAt -updatedAt',
+        select: '-isDeleted -createdAt -updatedAt -__v',
       })
       .populate({
         path: 'convenience',
-        select: '-isDeleted -createdAt -updatedAt',
+        select: '-isDeleted -createdAt -updatedAt  -__v',
       })
-      .select('-createdAt -updatedAt');
+      .select('-createdAt -updatedAt -__v -isDeleted');
     res.json({
       success: true,
       rooms,
@@ -296,9 +301,30 @@ const uploadImg = async (req, res) => {
       images: [...images, ...imgList],
     };
 
-    await Room.findOneAndUpdate(roomUpdateCondition, updated, {
-      new: true,
+    const updatedRoom = await Room.findOneAndUpdate(
+      roomUpdateCondition,
+      updated,
+      {
+        new: true,
+      }
+    );
+    res.json({
+      success: true,
+      message: 'Upload images successfully',
+      updatedRoom,
     });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+    });
+  }
+};
+
+const checkAvailable = async (req, res) => {
+  const { checkInDate, checkOutDate, capacity } = req.body;
+  try {
     res.json({
       success: true,
       message: 'Upload images successfully',

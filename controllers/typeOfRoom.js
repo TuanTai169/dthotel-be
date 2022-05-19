@@ -59,7 +59,9 @@ const getAllTypes = async (req, res) => {
 
 const getTypeById = async (req, res) => {
   try {
-    const type = await Type.findById(req.params.id);
+    const type = await Type.findById(req.params.id).select(
+      '-createdAt -updatedAt '
+    );
     if (!type)
       res.status(401).json({
         success: false,
