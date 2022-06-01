@@ -53,7 +53,14 @@ const createBooking = async (req, res) => {
     }
 
     // //Calculate service's price
-    const serviceCharge = await toolService.calculateServiceCharge(services);
+    const serviceCharge = await toolService.calculateServiceCharge(
+      services,
+      'service'
+    );
+    const productCharge = await toolService.calculateServiceCharge(
+      products,
+      'product'
+    );
 
     // Calculate discount
     const discountCharge = await toolRoom.calculateDiscount(discount);
@@ -68,7 +75,7 @@ const createBooking = async (req, res) => {
     const VAT = 10;
 
     const totalPrice = (
-      (totalRoomCharge + serviceCharge) *
+      (totalRoomCharge + serviceCharge + productCharge) *
         (1 + VAT / 100 - discountCharge / 100) -
       deposit
     ).toFixed();
@@ -127,6 +134,10 @@ const getAllBooking = async (req, res) => {
         select: 'name price',
       })
       .populate({
+        path: 'products',
+        select: 'name price',
+      })
+      .populate({
         path: 'discount',
         select: 'code discount desc ',
       })
@@ -175,6 +186,7 @@ const updateBooking = async (req, res) => {
     checkInDate,
     checkOutDate,
     services,
+    products,
     deposit,
     discount,
     status,
@@ -206,29 +218,40 @@ const updateBooking = async (req, res) => {
     }
 
     // //Calculate service's price
-    const serviceCharge = await toolService.calculateServiceCharge(services);
+    const serviceCharge = await toolService.calculateServiceCharge(
+      services,
+      'service'
+    );
+    const productCharge = await toolService.calculateServiceCharge(
+      products,
+      'product'
+    );
+
+    // Calculate discount
+    const discountCharge = await toolRoom.calculateDiscount(discount);
 
     //Price
     const VAT = 10;
     const totalPrice = (
-      (totalRoomCharge + serviceCharge) *
-      (1 + VAT / 100)
+      (totalRoomCharge + serviceCharge + productCharge) *
+        (1 + VAT / 100 - discountCharge / 100) -
+      deposit
     ).toFixed();
+
+    const roomList = rooms.map((room) => {
+      return { room, checkInDate, checkOutDate };
+    });
 
     //All good
     let updateBooking = {
-      rooms,
+      rooms: roomList,
       customer,
-      checkInDate,
-      checkOutDate,
-      earlyCheckIn,
-      lateCheckOut,
-      roomCharge: Math.round(totalRoomCharge),
       services,
-      serviceCharge: serviceCharge,
+      products,
       deposit,
       discount,
-      VAT,
+      earlyCheckIn,
+      lateCheckOut,
       totalPrice,
       status,
     };
@@ -243,7 +266,10 @@ const updateBooking = async (req, res) => {
       }
     );
     //Change STATUS ROOM
-    const statusRoom = status === 'CHECK IN' ? 'OCCUPIED' : 'BOOKING';
+    const statusRoom =
+      status === BookingStatus.checkIn.name
+        ? RoomStatus.Occupied.name
+        : RoomStatus.Booking.name;
     await toolRoom.changeStatusArrayRooms(rooms, statusRoom);
 
     res.json({
@@ -264,9 +290,12 @@ const cancelBooking = async (req, res) => {
   const bookingID = req.params.bookingID;
   try {
     const booking = await Booking.findById(bookingID);
-    const rooms = booking.rooms;
+    const rooms = booking.rooms.map((r) => r.room);
     const status = booking.status;
-    if (status === 'CHECK IN' || status === 'CHECK OUT')
+    if (
+      status === BookingStatus.checkIn.name ||
+      status === BookingStatus.checkout.name
+    )
       return res.status(400).json({
         success: false,
         message: 'Booking has been check in or check out',
@@ -277,7 +306,7 @@ const cancelBooking = async (req, res) => {
 
     let updateBooking = {
       isDeleted: true,
-      status: 'CANCELLED',
+      status: BookingStatus.cancelled.name,
     };
     let updatedBooking = await Booking.findOneAndUpdate(
       bookingUpdateCondition,
@@ -287,7 +316,7 @@ const cancelBooking = async (req, res) => {
       }
     );
     //Change STATUS room
-    await toolRoom.changeStatusArrayRooms(rooms, 'READY');
+    await toolRoom.changeStatusArrayRooms(rooms, RoomStatus.Ready.name);
     res.json({
       success: true,
       message: 'Booking cancelled successfully',
@@ -309,9 +338,11 @@ const changeRoom = async (req, res) => {
 
   try {
     const booking = await Booking.findById(bookingID);
-    const serviceCharge = booking.serviceCharge;
-    const checkInDate = booking.checkInDate;
-    const checkOutDate = booking.checkOutDate;
+    const status = booking.status;
+
+    const checkInDate = booking.rooms[0].checkInDate;
+    const checkOutDate = booking.rooms[0].checkOutDate;
+
     const newRooms = toolRoom.changeRoom(
       booking.rooms,
       roomChooseID,
@@ -325,9 +356,9 @@ const changeRoom = async (req, res) => {
     const roomCharge = await toolRoom.calculateRoomCharge(newRooms);
 
     // Calculate price
-    let totalRoomCharge;
-    let earlyCheckIn;
-    let lateCheckOut;
+    let totalRoomCharge = 0;
+    let earlyCheckIn = 0;
+    let lateCheckOut = 0;
     if (hourDiff < 24) {
       totalRoomCharge = await toolRoom.priceInHour(hourDiff, roomCharge);
     } else {
@@ -342,21 +373,37 @@ const changeRoom = async (req, res) => {
         lateCheckOut;
     }
 
+    // //Calculate service's price
+    const serviceCharge = await toolService.calculateServiceCharge(
+      booking.services,
+      'service'
+    );
+    const productCharge = await toolService.calculateServiceCharge(
+      booking.products,
+      'product'
+    );
+
+    // Calculate discount
+    const discountCharge = await toolRoom.calculateDiscount(booking.discount);
+
     //Price
     const VAT = 10;
     const totalPrice = (
-      (totalRoomCharge + serviceCharge) *
-      (1 + VAT / 100)
-    ).toFixed(0);
+      (totalRoomCharge + serviceCharge + productCharge) *
+        (1 + VAT / 100 - discountCharge / 100) -
+      booking.deposit
+    ).toFixed();
 
+    const roomList = newRooms.map((room) => {
+      return { room, checkInDate, checkOutDate };
+    });
     //UPDATE
     const bookingUpdateCondition = { _id: bookingID };
 
     let updateBooking = {
-      rooms: newRooms,
+      rooms: roomList,
       earlyCheckIn,
       lateCheckOut,
-      roomCharge: Math.round(totalRoomCharge),
       totalPrice,
     };
 
@@ -368,8 +415,8 @@ const changeRoom = async (req, res) => {
       }
     );
     //Change STATUS room
-    await toolRoom.changeStatusArrayRooms(newRooms, 'OCCUPIED');
-    await toolRoom.changeStatusOneRoom(roomChooseID, 'READY');
+    await toolRoom.changeStatusArrayRooms(newRooms, status);
+    await toolRoom.changeStatusOneRoom(roomChooseID, RoomStatus.Ready.name);
 
     res.json({
       success: true,

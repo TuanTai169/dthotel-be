@@ -38,21 +38,21 @@ const createReceipt = async (req, res) => {
     //ALL GOOD
     const newReceipt = new Receipt({
       booking,
+      detail: { ...bookingItem },
       paidOut,
       refund,
       modeOfPayment,
-      status,
     });
     await newReceipt.save();
 
     //Change STATUS ROOM
     await toolRoom.changeStatusArrayRooms(
-      bookingItem.rooms,
+      bookingItem.rooms.map((r) => r.room),
       RoomStatus.Cleaning.name
     );
 
     //Change STATUS RECEIPT
-    await toolReceipt.changeStatusBooking(booking, BookingStatus.Checkout.name);
+    await toolReceipt.changeStatusBooking(booking, BookingStatus.checkout.name);
 
     //Send to customer email
     const customer = await Customer.findById(bookingItem.customer);

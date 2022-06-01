@@ -3,26 +3,30 @@ const moment = require('moment');
 const _ = require('lodash');
 const Booking = require('../models/Booking');
 const Coupon = require('../models/Coupon');
+const { RoomStatus, BookingStatus } = require('../config/constants');
 
-exports.changeStatusArrayRooms = async (rooms, status, userId) => {
+exports.changeStatusArrayRooms = async (rooms, status) => {
   try {
     let statusRoomUpdate;
     const listRoom = await getAllInfoRoom(rooms);
     for (const room of listRoom) {
-      if (room.status === 'OCCUPIED') {
-        if (status === 'CLEANING') {
-          statusRoomUpdate = 'CLEANING';
+      if (room.status === RoomStatus.Occupied.name) {
+        if (status === RoomStatus.Cleaning.name) {
+          statusRoomUpdate = RoomStatus.Cleaning.name;
         } else {
-          statusRoomUpdate = 'OCCUPIED';
+          statusRoomUpdate = RoomStatus.Occupied.name;
         }
-      } else if (room.status === 'BOOKING' && status === 'OCCUPIED') {
-        statusRoomUpdate = 'OCCUPIED';
+      } else if (
+        room.status === RoomStatus.Booking.name &&
+        status === RoomStatus.Occupied.name
+      ) {
+        statusRoomUpdate = RoomStatus.Occupied.name;
       } else {
         statusRoomUpdate = status;
       }
 
       const filter = { _id: room._id };
-      const update = { status: statusRoomUpdate, updateBy: userId };
+      const update = { status: statusRoomUpdate };
       updatedRoom = await Room.findByIdAndUpdate(filter, update, {
         new: true,
       });
@@ -35,10 +39,10 @@ exports.changeStatusArrayRooms = async (rooms, status, userId) => {
     });
   }
 };
-exports.changeStatusOneRoom = async (room, status, userId) => {
+exports.changeStatusOneRoom = async (room, status) => {
   try {
     const filter = { _id: room };
-    const update = { status: status, updateBy: userId };
+    const update = { status: status };
     updatedRoom = await Room.findByIdAndUpdate(filter, update, {
       new: true,
     });
@@ -85,11 +89,11 @@ exports.checkStatusRoom = async (checkInDate, rooms) => {
 };
 
 exports.changeRoom = (rooms, roomChooseID, roomChangeID) => {
-  const index = rooms.indexOf(roomChooseID);
-  if (index !== -1) {
-    rooms[index] = roomChangeID;
+  const index = rooms.findIndex((r) => r.room.toString() === roomChooseID);
+  if (index > -1) {
+    rooms[index].room = roomChangeID;
   }
-  return rooms;
+  return rooms.map((r) => r.room);
 };
 
 exports.getNumberOfDays = (checkInDate, checkOutDate) => {

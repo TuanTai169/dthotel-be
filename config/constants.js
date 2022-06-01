@@ -25,7 +25,7 @@ module.exports = {
   BookingStatus: Object.freeze({
     Booking: { name: 'Booking', value: 0, color: 'blue' },
     checkIn: { name: 'Check In', value: 1, color: 'green' },
-    checkout: { name: 'Checkout', value: 2, color: 'red' },
+    checkout: { name: 'Check out', value: 2, color: 'red' },
     cancelled: { name: 'Cancelled', value: 3, color: '#ccc' },
   }),
 

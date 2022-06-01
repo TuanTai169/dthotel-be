@@ -12,6 +12,10 @@ const ServiceSchema = new Schema(
       required: true,
       default: 0,
     },
+    isProduct: {
+      type: Boolean,
+      default: false,
+    },
     isDeleted: {
       type: Boolean,
       default: false,

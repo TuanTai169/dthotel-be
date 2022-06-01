@@ -1,14 +1,42 @@
-const _ = require("lodash")
-const Service = require("../models/Service")
+const _ = require('lodash');
+const Service = require('../models/Service');
 
-exports.calculateServiceCharge = async (services) => {
-  const listService = await getAllInfoService(services)
-  return _.sumBy(listService, (item) => item.price)
-}
+exports.calculateServiceCharge = async (list, type) => {
+  let price = 0;
+  const listService = await Service.find({
+    isDeleted: false,
+    isProduct: type === 'product' ? true : false,
+  });
+  list.forEach((element) => {
+    switch (type) {
+      case 'service':
+        {
+          const service = listService.find(
+            (x) => x._id.toString() === element.service
+          );
+          if (service) {
+            price += service.price * element.amount;
+          }
+        }
+        break;
+      case 'product':
+        {
+          const product = listService.find(
+            (x) => x._id.toString() === element.product
+          );
+          if (product) {
+            price += product.price * element.amount;
+          }
+        }
+        break;
+      default:
+        break;
+    }
+  });
 
-const getAllInfoService = async (services) => {
-  const promise = services.map((service) => {
-    return Service.findById(service)
-  })
-  return await Promise.all(promise)
-}
+  return price;
+};
+
+// const getAllInfoService = async (id) => {
+//   return await Promise.all(Service.findById({ _id: id }));
+// };

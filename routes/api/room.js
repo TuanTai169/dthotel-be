@@ -43,6 +43,11 @@ router.put(
   roomController.changeStatusRoom
 );
 
+// @route GET api/room/
+// @decs Check status Room ROOM
+// @access Private
+router.post(`/check-available`, verifyToken, roomController.checkAvailable);
+
 // @route PUT api/room/
 // @decs upload Image
 // @access Private

@@ -236,23 +236,19 @@ const deleteRoom = async (req, res) => {
 
 const changeStatusRoom = async (req, res) => {
   try {
-    // const roomId = req.params.id;
-    // const userId = req.userId;
-    // const status =
-    //   req.params.status === 'fix'
-    //     ? 'FIXING'
-    //     : req.params.status === 'occupied'
-    //     ? 'OCCUPIED'
-    //     : req.params.status === 'clean'
-    //     ? 'CLEANING'
-    //     : req.params.status === 'book'
-    //     ? 'BOOKING'
-    //     : 'READY';
-    // const updatedRoom = await toolRoom.changeStatusOneRoom(
-    //   roomId,
-    //   status,
-    //   userId
-    // );
+    const roomId = req.params.id;
+    const userId = req.userId;
+    const status =
+      req.params.status === 'fix'
+        ? RoomStatus.Fixing.name
+        : req.params.status === 'occupied'
+        ? RoomStatus.Occupied.name
+        : req.params.status === 'clean'
+        ? RoomStatus.Cleaning.name
+        : req.params.status === 'book'
+        ? RoomStatus.Booking.name
+        : RoomStatus.Ready.name;
+    const updatedRoom = await toolRoom.changeStatusOneRoom(roomId, status);
 
     res.json({
       success: true,
@@ -324,10 +320,27 @@ const uploadImg = async (req, res) => {
 
 const checkAvailable = async (req, res) => {
   const { checkInDate, checkOutDate, capacity } = req.body;
+
   try {
+    const allBooking = await Booking.find({ isDeleted: false });
+    const allRoom = await Room.find({ isDeleted: false });
+
+    const listRoomIsAvailable = allRoom
+      .filter(
+        (r) =>
+          r.status !== RoomStatus.Occupied.name &&
+          r.status !== RoomStatus.Fixing.name
+      )
+      .filter(
+        (r) =>
+          r.capacity.adult <= capacity.adult &&
+          r.capacity.child <= capacity.child
+      );
+
     res.json({
       success: true,
-      message: 'Upload images successfully',
+      message: 'Check available successfully',
+      listRoom: listRoomIsAvailable,
     });
   } catch (error) {
     console.log(error);
@@ -347,4 +360,5 @@ module.exports = {
   deleteRoom,
   changeStatusRoom,
   uploadImg,
+  checkAvailable,
 };

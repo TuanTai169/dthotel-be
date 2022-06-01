@@ -1,7 +1,7 @@
 const Service = require('../models/Service');
 
 const createService = async (req, res) => {
-  const { name, price } = req.body;
+  const { name, price, isProduct } = req.body;
 
   //Validation
   if (!name || !price)
@@ -15,18 +15,21 @@ const createService = async (req, res) => {
     if (serviceExist)
       return res.status(400).json({
         success: false,
-        message: 'Service already taken',
+        message: 'Service or product already taken',
       });
     //All good
     const newService = new Service({
       name,
       price,
+      isProduct,
     });
+
+    const typeName = !isProduct ? 'Service' : 'Product';
 
     await newService.save();
     res.json({
       success: true,
-      message: 'Service created successfully',
+      message: `${typeName} created successfully`,
       service: newService,
     });
   } catch (error) {
