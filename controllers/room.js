@@ -1,10 +1,12 @@
+const _ = require('lodash');
 const Room = require('../models/Room');
-const Booking = require('../models/Booking');
 const { roomValidation } = require('../tools/validation');
 const toolRoom = require('../tools/roomTool');
 const {
   imageDefault,
   capacityDefault,
+  bedDefault,
+  detailDefault,
   RoomStatus,
 } = require('../config/constants');
 const { uploadImage } = require('../utils/google-api');
@@ -13,10 +15,12 @@ const createRoom = async (req, res) => {
   const {
     roomNumber,
     floor,
+    name,
     price,
     capacity,
-    desc,
+    detail,
     roomType,
+    bed,
     convenience,
     images,
     status,
@@ -41,10 +45,12 @@ const createRoom = async (req, res) => {
     const newRoom = new Room({
       roomNumber,
       floor,
+      name,
       price,
       capacity: capacity || capacityDefault,
-      desc: desc || '',
+      detail: detail || detailDefault,
       roomType: roomType || [],
+      bed: bed || bedDefault,
       convenience: convenience || [],
       images: images || imageDefault,
       status: status || RoomStatus.Ready.name,
@@ -60,7 +66,7 @@ const createRoom = async (req, res) => {
     console.log(error);
     res.status(500).json({
       success: false,
-      message: 'Internal server error',
+      message: error.message,
     });
   }
 };
@@ -149,10 +155,12 @@ const updateRoom = async (req, res) => {
   const {
     roomNumber,
     floor,
+    name,
     price,
     capacity,
-    desc,
+    detail,
     roomType,
+    bed,
     convenience,
     images,
     status,
@@ -177,10 +185,12 @@ const updateRoom = async (req, res) => {
     let updateRoom = {
       roomNumber,
       floor,
+      name,
       price,
       capacity,
-      desc,
+      detail,
       roomType,
+      bed,
       convenience,
       images,
       status,
@@ -210,8 +220,28 @@ const updateRoom = async (req, res) => {
 };
 
 const deleteRoom = async (req, res) => {
+  const roomId = req.params.id;
   try {
-    const roomDeleteCondition = { _id: req.params.id };
+    const findRoom = await Room.findById(roomId);
+
+    if (findRoom.isDeleted) {
+      return res.status(404).json({
+        success: false,
+        message: 'Room not found or has been deleted!',
+      });
+    }
+
+    if (
+      findRoom.status === RoomStatus.Booking.name ||
+      findRoom.status === RoomStatus.Occupied.name
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: 'Not deleted ! Room is booking or occupied !',
+      });
+    }
+
+    const roomDeleteCondition = { _id: roomId };
     const deleted = { isDeleted: true };
     let deletedRoom = await Room.findOneAndUpdate(
       roomDeleteCondition,
@@ -227,9 +257,9 @@ const deleteRoom = async (req, res) => {
     });
   } catch (error) {
     console.log(error);
-    res.status(500).json({
+    res.status(404).json({
       success: false,
-      message: 'Internal server error',
+      message: 'Room not found',
     });
   }
 };
@@ -237,7 +267,6 @@ const deleteRoom = async (req, res) => {
 const changeStatusRoom = async (req, res) => {
   try {
     const roomId = req.params.id;
-    const userId = req.userId;
     const status =
       req.params.status === 'fix'
         ? RoomStatus.Fixing.name
@@ -254,6 +283,35 @@ const changeStatusRoom = async (req, res) => {
       success: true,
       message: `Room updated successfully`,
       updatedRoom,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+    });
+  }
+};
+
+const changePriceRoom = async (req, res) => {
+  const { list, percent } = req.body;
+  try {
+    const ratio = percent / 100;
+    if (Math.abs(ratio) > 0.3) {
+      return res.json({
+        success: false,
+        message:
+          'Room rates cannot be increased or decreased by more than 30%.',
+      });
+    }
+
+    if (Array.isArray(list) && list.length > 0) {
+      await toolRoom.changePriceArrayRooms(list, ratio);
+    }
+
+    res.json({
+      success: true,
+      message: `Price updated successfully`,
     });
   } catch (error) {
     console.log(error);
@@ -320,10 +378,19 @@ const uploadImg = async (req, res) => {
 
 const checkAvailable = async (req, res) => {
   const { checkInDate, checkOutDate, capacity } = req.body;
-
+  const adult = capacity.adult;
+  const child = capacity.child;
   try {
-    const allBooking = await Booking.find({ isDeleted: false });
-    const allRoom = await Room.find({ isDeleted: false });
+    const allRoom = await Room.find({ isDeleted: false })
+      .populate({
+        path: 'roomType',
+        select: '-isDeleted -createdAt -updatedAt',
+      })
+      .populate({
+        path: 'convenience',
+        select: '-isDeleted -createdAt -updatedAt',
+      })
+      .select('-createdAt -updatedAt');
 
     const listRoomIsAvailable = allRoom
       .filter(
@@ -331,16 +398,27 @@ const checkAvailable = async (req, res) => {
           r.status !== RoomStatus.Occupied.name &&
           r.status !== RoomStatus.Fixing.name
       )
-      .filter(
-        (r) =>
-          r.capacity.adult <= capacity.adult &&
-          r.capacity.child <= capacity.child
-      );
+      .filter((r) => r.capacity.adult <= adult);
+
+    const listAvailable = [];
+    if (child === 0) {
+      listRoomIsAvailable.forEach((room) => {
+        if (room.capacity.child === 0) {
+          listAvailable.push(room);
+        }
+      });
+    } else {
+      listRoomIsAvailable.forEach((room) => {
+        if (room.capacity.child > 0) {
+          listAvailable.push(room);
+        }
+      });
+    }
 
     res.json({
       success: true,
       message: 'Check available successfully',
-      listRoom: listRoomIsAvailable,
+      listRoom: listAvailable,
     });
   } catch (error) {
     console.log(error);
@@ -359,6 +437,7 @@ module.exports = {
   updateRoom,
   deleteRoom,
   changeStatusRoom,
+  changePriceRoom,
   uploadImg,
   checkAvailable,
 };

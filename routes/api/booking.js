@@ -7,6 +7,11 @@ const verifyToken = require('../../middleware/authorization');
 // @access Private
 router.post('/:book', verifyToken, bookingController.createBooking);
 
+//  @route POST api/booking/
+// @decs CREATE BOOKING/CHECK-IN
+// @access Private
+router.post('/', verifyToken, bookingController.createBookingInWeb);
+
 // @route GET api/booking/
 // @decs READ ALL BOOKING/CHECK-IN
 // @access Private

@@ -38,12 +38,25 @@ module.exports = {
   }),
 
   imageDefault: {
-    src: 'https://drive.google.com/thumbnail?id=1wssym_RCzfAETooYk690s0mlcAv_CVhw',
+    src: 'https://drive.google.com/thumbnail?id=13slEWNdyUJgkgeVHFmQdVIvwqLoAWVXC',
     alt: 'default-img',
   },
   capacityDefault: {
     adult: 1,
     child: 0,
+  },
+
+  bedDefault: {
+    single: 0,
+    double: 1,
+  },
+
+  detailDefault: {
+    bedRoom: 1,
+    bathRoom: 1,
+    livingRoom: 0,
+    kitchen: 0,
+    desc: 'This air-conditioned double room also has a heater option and opens up to views. The seating area features a flat-screen satellite TV, sofa and a mini-bar. The private bathroom comes with a shower or a bath. A bathrobe is provided. Interconnecting rooms are available.',
   },
 
   sendEmailConfig: {

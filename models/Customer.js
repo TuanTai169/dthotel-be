@@ -27,7 +27,6 @@ const CustomerSchema = new Schema(
       adult: {
         type: Number,
         min: 1,
-        max: 8,
       },
       child: {
         type: Number,

@@ -12,7 +12,7 @@ router.post('/', verifyToken, checkManager, roomController.createRoom);
 // @route GET api/room/
 // @decs READ ALL room
 // @access Private
-router.get('/', verifyToken, roomController.getAllRooms);
+router.get('/', roomController.getAllRooms);
 
 // @route GET api/room/:floor
 // @decs SORT room by floor
@@ -42,6 +42,11 @@ router.put(
   verifyToken,
   roomController.changeStatusRoom
 );
+
+// @route PUT api/room/
+// @decs CHANGE STATUS ROOM
+// @access Private
+router.put(`/change-price`, verifyToken, roomController.changePriceRoom);
 
 // @route GET api/room/
 // @decs Check status Room ROOM

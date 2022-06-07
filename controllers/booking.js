@@ -1,6 +1,12 @@
 const Booking = require('../models/Booking');
+const Customer = require('../models/Customer');
+const Room = require('../models/Room');
+const TypeOfRoom = require('../models/TypeOfRoom');
+const Convenience = require('../models/Convenience');
+const Coupon = require('../models/Coupon');
 const toolRoom = require('../tools/roomTool');
 const toolService = require('../tools/serviceTool');
+const { customerValidation } = require('../tools/validation');
 const { RoomStatus, BookingStatus } = require('../config/constants');
 
 const createBooking = async (req, res) => {
@@ -22,7 +28,7 @@ const createBooking = async (req, res) => {
     if (checkStatus === false)
       return res.status(400).json({
         success: false,
-        message: 'Room has been booking or occupied on this day',
+        message: 'Room not ready on this day',
       });
 
     //Generate code
@@ -84,6 +90,35 @@ const createBooking = async (req, res) => {
       return { room, checkInDate, checkOutDate };
     });
 
+    // Save to object detail
+    const listRoom = await toolRoom.getAllInfoRoom(rooms);
+    const customerCurrent = await Customer.findById(customer).select(
+      'name email phone idNumber address'
+    );
+    const listService = await toolService.getAllInfoService(
+      services.map((x) => x.service)
+    );
+    const listProduct = await toolService.getAllInfoService(
+      products.map((x) => x.product)
+    );
+    const detailDiscount = await Coupon.findById(discount).select(
+      'code discount desc'
+    );
+
+    const detail = {
+      code,
+      rooms: listRoom,
+      customer: customerCurrent,
+      services: listService,
+      products: listProduct,
+      deposit,
+      discount: detailDiscount,
+      earlyCheckIn,
+      lateCheckOut,
+      totalPrice,
+      status,
+    };
+
     const newBooking = new Booking({
       code,
       rooms: roomList,
@@ -96,6 +131,7 @@ const createBooking = async (req, res) => {
       lateCheckOut,
       totalPrice,
       status,
+      detail,
     });
 
     await newBooking.save();
@@ -110,6 +146,175 @@ const createBooking = async (req, res) => {
     res.json({
       success: true,
       message: `${status} successfully`,
+      booking: newBooking,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+    });
+  }
+};
+
+const createBookingInWeb = async (req, res) => {
+  const {
+    rooms,
+    customer, // Object customer
+    checkInDate,
+    checkOutDate,
+    services,
+    products,
+    deposit,
+    discount,
+  } = req.body;
+
+  const { name, email, phone, idNumber, address, numberOfPeople } = customer;
+  //Validation
+  const { error } = customerValidation(customer);
+  if (error)
+    return res.status(400).json({
+      success: false,
+      message: error.details[0].message,
+    });
+
+  try {
+    // Check booking exist
+    const checkStatus = await toolRoom.checkStatusRoom(checkInDate, rooms);
+
+    if (checkStatus === false)
+      return res.status(400).json({
+        success: false,
+        message: 'Room has been booking or occupied on this day',
+      });
+
+    //Check for existing customer
+    const customerExist = await Customer.findOne({ email });
+    if (customerExist)
+      return res.status(400).json({
+        success: false,
+        message: 'Customer already existed',
+      });
+
+    //All good
+    const newCustomer = new Customer({
+      name,
+      email,
+      phone,
+      idNumber,
+      address,
+      numberOfPeople,
+    });
+    await newCustomer.save();
+
+    const customerCurrent = await Customer.findOne({ email });
+
+    //Generate code
+    const code = 'DT' + Date.now().toString();
+
+    //Calculate diffInDays
+    const hourDiff = toolRoom.getNumberOfHour(checkInDate, checkOutDate);
+
+    //Calculate room's price
+    const roomCharge = await toolRoom.calculateRoomCharge(rooms);
+
+    // Calculate price
+    let totalRoomCharge;
+    let earlyCheckIn = 0;
+    let lateCheckOut = 0;
+    if (hourDiff < 24) {
+      totalRoomCharge = await toolRoom.priceInHour(hourDiff, roomCharge);
+    } else {
+      const early = await toolRoom.earlyCheckIn(checkInDate, roomCharge);
+      const late = await toolRoom.lateCheckOut(checkOutDate, roomCharge);
+
+      earlyCheckIn = early.price;
+      lateCheckOut = late.price;
+      totalRoomCharge =
+        ((hourDiff - early.hour - late.hour) * roomCharge) / 24 +
+        earlyCheckIn +
+        lateCheckOut;
+    }
+
+    // //Calculate service's price
+    const serviceCharge = await toolService.calculateServiceCharge(
+      services,
+      'service'
+    );
+    const productCharge = await toolService.calculateServiceCharge(
+      products,
+      'product'
+    );
+
+    // Calculate discount
+    const discountCharge = await toolRoom.calculateDiscount(discount);
+
+    //Change status
+    let status = BookingStatus.Booking.name;
+
+    //Price
+    const VAT = 10;
+
+    const totalPrice = (
+      (totalRoomCharge + serviceCharge + productCharge) *
+        (1 + VAT / 100 - discountCharge / 100) -
+      deposit
+    ).toFixed();
+
+    const roomList = rooms.map((room) => {
+      return { room, checkInDate, checkOutDate };
+    });
+
+    // Save to object detail
+    const listRoom = await toolRoom.getAllInfoRoom(rooms);
+
+    const listService = await toolService.getAllInfoService(
+      services.map((x) => x.service)
+    );
+    const listProduct = await toolService.getAllInfoService(
+      products.map((x) => x.product)
+    );
+    const detailDiscount = await Coupon.findById(discount).select(
+      'code discount desc'
+    );
+
+    const detail = {
+      code,
+      rooms: listRoom,
+      customer: customerCurrent,
+      services: listService,
+      products: listProduct,
+      deposit,
+      discount: detailDiscount,
+      earlyCheckIn,
+      lateCheckOut,
+      totalPrice,
+      status,
+    };
+
+    const newBooking = new Booking({
+      code,
+      rooms: roomList,
+      customer: customerCurrent._id.toString(),
+      services,
+      products,
+      deposit,
+      discount,
+      earlyCheckIn,
+      lateCheckOut,
+      totalPrice,
+      status,
+      detail,
+    });
+
+    await newBooking.save();
+
+    //Change STATUS ROOM
+    await toolRoom.changeStatusArrayRooms(rooms, status);
+
+    res.json({
+      success: true,
+      message: `Booking successfully ! Please check info!`,
       booking: newBooking,
     });
   } catch (error) {
@@ -242,6 +447,33 @@ const updateBooking = async (req, res) => {
       return { room, checkInDate, checkOutDate };
     });
 
+    // Save to object detail
+    const listRoom = await toolRoom.getAllInfoRoom(rooms);
+
+    const listService = await toolService.getAllInfoService(
+      services.map((x) => x.service)
+    );
+    const listProduct = await toolService.getAllInfoService(
+      products.map((x) => x.product)
+    );
+    const detailDiscount = await Coupon.findById(discount).select(
+      'code discount desc'
+    );
+
+    const detail = {
+      code,
+      rooms: listRoom,
+      customer: customerCurrent,
+      services: listService,
+      products: listProduct,
+      deposit,
+      discount: detailDiscount,
+      earlyCheckIn,
+      lateCheckOut,
+      totalPrice,
+      status,
+    };
+
     //All good
     let updateBooking = {
       rooms: roomList,
@@ -254,6 +486,7 @@ const updateBooking = async (req, res) => {
       lateCheckOut,
       totalPrice,
       status,
+      detail,
     };
 
     const bookingUpdateCondition = { _id: req.params.id };
@@ -433,6 +666,7 @@ const changeRoom = async (req, res) => {
 };
 module.exports = {
   createBooking,
+  createBookingInWeb,
   getAllBooking,
   getBookingById,
   updateBooking,

@@ -22,11 +22,19 @@ const createReceipt = async (req, res) => {
     });
   try {
     const bookingItem = await Booking.findById(booking);
+
     if (!bookingItem)
       return res.status(400).json({
         success: false,
         message: 'Booking not found',
       });
+
+    if (bookingItem.status !== BookingStatus.checkIn.name) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please check-in before check-out',
+      });
+    }
 
     // Check for existing receipt
     const receiptExist = await Receipt.findOne({ booking });
@@ -35,10 +43,10 @@ const createReceipt = async (req, res) => {
         success: false,
         message: 'Receipt already taken',
       });
+
     //ALL GOOD
     const newReceipt = new Receipt({
       booking,
-      detail: { ...bookingItem },
       paidOut,
       refund,
       modeOfPayment,
@@ -50,7 +58,6 @@ const createReceipt = async (req, res) => {
       bookingItem.rooms.map((r) => r.room),
       RoomStatus.Cleaning.name
     );
-
     //Change STATUS RECEIPT
     await toolReceipt.changeStatusBooking(booking, BookingStatus.checkout.name);
 
@@ -90,22 +97,7 @@ const getAllReceipts = async (req, res) => {
   try {
     const receipts = await Receipt.find({ isActive: true }).populate({
       path: 'booking',
-      select: '-isDeleted -createdAt -updatedAt',
-      populate: [
-        { path: 'customer', select: 'name email phone' },
-        {
-          path: 'rooms',
-          select: 'roomNumber floor price roomType status',
-        },
-        {
-          path: 'services',
-          select: 'name price',
-        },
-        {
-          path: 'discount',
-          select: 'code discount desc ',
-        },
-      ],
+      select: 'detail',
     });
     res.json({
       success: true,
@@ -122,26 +114,7 @@ const getAllReceipts = async (req, res) => {
 
 const getReceiptById = async (req, res) => {
   try {
-    const receipt = await Receipt.findById(req.params.id).populate({
-      path: 'booking',
-      select: '-isActive -createBy -updateBy -createdAt -updatedAt',
-      populate: { path: 'customer', select: 'name email phone' },
-      populate: [
-        { path: 'customer', select: 'name email phone' },
-        {
-          path: 'rooms',
-          select: 'roomNumber floor price roomType status',
-        },
-        {
-          path: 'services',
-          select: 'name price',
-        },
-        {
-          path: 'discount',
-          select: 'code discount desc ',
-        },
-      ],
-    });
+    const receipt = await Receipt.findById(req.params.id);
 
     res.json({
       success: true,

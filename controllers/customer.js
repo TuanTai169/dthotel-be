@@ -1,7 +1,8 @@
 const Customer = require('../models/Customer');
+const Booking = require('../models/Booking');
 
 const { customerValidation } = require('../tools/validation');
-const { capacityDefault } = require('../config/constants');
+const { capacityDefault, BookingStatus } = require('../config/constants');
 
 const getAllCustomer = async (req, res) => {
   try {
@@ -132,7 +133,18 @@ const updateCustomer = async (req, res) => {
 
 const deleteCustomer = async (req, res) => {
   try {
-    const customerDeleteCondition = { _id: req.params.id };
+    const cusId = req.params.id;
+    const listBooking = await Booking.find({ isDeleted: false });
+    const listCustomerOfBooking = listBooking.map((b) => b.customer.toString());
+
+    if (listCustomerOfBooking.includes(cusId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Not deleted ! Customer is exist in booking or occupied !',
+      });
+    }
+
+    const customerDeleteCondition = { _id: cusId };
     const deleted = { isDeleted: true };
     let deletedCus = await Customer.findOneAndUpdate(
       customerDeleteCondition,
@@ -141,6 +153,7 @@ const deleteCustomer = async (req, res) => {
         new: true,
       }
     );
+
     res.status(200).json({
       success: true,
       message: 'Customer deleted successfully',

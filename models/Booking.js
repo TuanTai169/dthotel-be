@@ -117,6 +117,9 @@ const BookingSchema = new Schema(
     status: {
       type: String,
     },
+    detail: {
+      type: Object,
+    },
     isDeleted: {
       type: Boolean,
       default: false,

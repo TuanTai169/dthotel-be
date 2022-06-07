@@ -37,6 +37,11 @@ exports.calculateServiceCharge = async (list, type) => {
   return price;
 };
 
-// const getAllInfoService = async (id) => {
-//   return await Promise.all(Service.findById({ _id: id }));
-// };
+const getAllInfoService = async (list) => {
+  const promise = list.map((serviceId) => {
+    return Service.findById(serviceId).select('name price');
+  });
+  return await Promise.all(promise);
+};
+
+exports.getAllInfoService = getAllInfoService;

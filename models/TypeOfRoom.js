@@ -11,6 +11,10 @@ const TypeOfRoomSchema = new Schema(
       type: String,
       required: true,
     },
+    size: {
+      type: Number,
+      default: 24,
+    },
     isDeleted: {
       type: Boolean,
       default: false,

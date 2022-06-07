@@ -1,7 +1,7 @@
 const Type = require('../models/TypeOfRoom');
 
 const createType = async (req, res) => {
-  const { nameTag, type } = req.body;
+  const { nameTag, type, size } = req.body;
 
   //Validation
   if (!nameTag || !type)
@@ -22,6 +22,7 @@ const createType = async (req, res) => {
     const newType = new Type({
       nameTag,
       type,
+      size,
     });
 
     await newType.save();
@@ -81,7 +82,7 @@ const getTypeById = async (req, res) => {
 };
 
 const updateType = async (req, res) => {
-  const { nameTag, type } = req.body;
+  const { nameTag, type, size } = req.body;
   const id = req.params.id;
 
   //Validation
@@ -101,6 +102,7 @@ const updateType = async (req, res) => {
     let updateType = {
       nameTag,
       type,
+      size,
     };
     const typeUpdatedCondition = { _id: id };
 

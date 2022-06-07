@@ -7,9 +7,6 @@ const ReceiptSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: 'bookings',
     },
-    detail: {
-      type: Object,
-    },
     paidOut: {
       type: Number,
       required: true,

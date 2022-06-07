@@ -1,6 +1,9 @@
-const Room = require('../models/Room');
 const moment = require('moment');
 const _ = require('lodash');
+
+const Room = require('../models/Room');
+const TypeOfRoom = require('../models/TypeOfRoom');
+const Convenience = require('../models/Convenience');
 const Booking = require('../models/Booking');
 const Coupon = require('../models/Coupon');
 const { RoomStatus, BookingStatus } = require('../config/constants');
@@ -39,6 +42,27 @@ exports.changeStatusArrayRooms = async (rooms, status) => {
     });
   }
 };
+
+exports.changePriceArrayRooms = async (rooms, percent) => {
+  try {
+    const listRoom = await getAllInfoRoom(rooms);
+    for (const room of listRoom) {
+      const filter = { _id: room._id };
+      const update = {
+        price: Number.parseFloat(room.price * (1 + percent)).toFixed(2),
+      };
+      updatedRoom = await Room.findByIdAndUpdate(filter, update, {
+        new: true,
+      });
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+    });
+  }
+};
 exports.changeStatusOneRoom = async (room, status) => {
   try {
     const filter = { _id: room };
@@ -62,12 +86,17 @@ exports.calculateRoomCharge = async (rooms) => {
 };
 
 exports.checkStatusRoom = async (checkInDate, rooms) => {
-  let check = true;
   const day = new Date(checkInDate);
   const listRoom = await getAllInfoRoom(rooms);
   const listBooking = await Booking.find({ isDeleted: false });
 
   for (const room of listRoom) {
+    if (
+      room.status === RoomStatus.Cleaning.name ||
+      room.status === RoomStatus.Fixing.name
+    ) {
+      return false;
+    }
     for (const booking of listBooking) {
       const roomListExist = booking.rooms.find(
         (r) => r.room.toString() === room._id.toString()
@@ -79,13 +108,13 @@ exports.checkStatusRoom = async (checkInDate, rooms) => {
           day.getTime() >= checkIn.getTime() &&
           day.getTime() <= checkOut.getTime()
         ) {
-          check = false;
+          return false;
         }
       }
     }
   }
 
-  return check;
+  return true;
 };
 
 exports.changeRoom = (rooms, roomChooseID, roomChangeID) => {
@@ -119,7 +148,7 @@ exports.earlyCheckIn = (checkInDate, roomCharge) => {
 
   const start = moment(checkInDate, 'YYYY-MM-DD HH:mm');
   const end = moment(checkInDate, 'YYYY-MM-DD').set({
-    hours: 12,
+    hours: 14,
     minutes: 00,
   });
 
@@ -188,7 +217,24 @@ exports.calculateDiscount = async (discount) => {
 
 const getAllInfoRoom = async (rooms) => {
   const promise = rooms.map((room) => {
-    return Room.findById(room);
+    return Room.findById(room).select('-createdAt -updatedAt -isDeleted');
   });
   return await Promise.all(promise);
 };
+
+const getAllInfoConvenience = async (list) => {
+  const promise = list.map((item) => {
+    return Room.findById(item).select('-createdAt -updatedAt -isDeleted');
+  });
+  return await Promise.all(promise);
+};
+
+const getAllInfoType = async (id) => {
+  return await TypeOfRoom.findById(id).select(
+    '-createdAt -updatedAt -isDeleted'
+  );
+};
+
+exports.getAllInfoRoom = getAllInfoRoom;
+exports.getAllInfoConvenience = getAllInfoConvenience;
+exports.getAllInfoType = getAllInfoType;
