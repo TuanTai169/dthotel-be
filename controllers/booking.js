@@ -80,11 +80,11 @@ const createBooking = async (req, res) => {
     //Price
     const VAT = 10;
 
-    const totalPrice = (
+    const totalPrice = parseFloat(
       (totalRoomCharge + serviceCharge + productCharge) *
         (1 + VAT / 100 - discountCharge / 100) -
-      deposit
-    ).toFixed();
+        deposit
+    ).toFixed(2);
 
     const roomList = rooms.map((room) => {
       return { room, checkInDate, checkOutDate };
@@ -188,14 +188,6 @@ const createBookingInWeb = async (req, res) => {
         message: 'Room has been booking or occupied on this day',
       });
 
-    //Check for existing customer
-    const customerExist = await Customer.findOne({ email });
-    if (customerExist)
-      return res.status(400).json({
-        success: false,
-        message: 'Customer already existed',
-      });
-
     //All good
     const newCustomer = new Customer({
       name,
@@ -222,19 +214,6 @@ const createBookingInWeb = async (req, res) => {
     let totalRoomCharge;
     let earlyCheckIn = 0;
     let lateCheckOut = 0;
-    if (hourDiff < 24) {
-      totalRoomCharge = await toolRoom.priceInHour(hourDiff, roomCharge);
-    } else {
-      const early = await toolRoom.earlyCheckIn(checkInDate, roomCharge);
-      const late = await toolRoom.lateCheckOut(checkOutDate, roomCharge);
-
-      earlyCheckIn = early.price;
-      lateCheckOut = late.price;
-      totalRoomCharge =
-        ((hourDiff - early.hour - late.hour) * roomCharge) / 24 +
-        earlyCheckIn +
-        lateCheckOut;
-    }
 
     // //Calculate service's price
     const serviceCharge = await toolService.calculateServiceCharge(
