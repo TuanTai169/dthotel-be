@@ -393,11 +393,7 @@ const checkAvailable = async (req, res) => {
       .select('-createdAt -updatedAt');
 
     const listRoomIsAvailable = allRoom
-      .filter(
-        (r) =>
-          r.status !== RoomStatus.Occupied.name &&
-          r.status !== RoomStatus.Fixing.name
-      )
+      .filter((r) => r.status !== RoomStatus.Ready.name)
       .filter((r) => r.capacity.adult <= adult);
 
     const listAvailable = [];
