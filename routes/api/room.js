@@ -51,7 +51,7 @@ router.put(`/change-price`, verifyToken, roomController.changePriceRoom);
 // @route GET api/room/
 // @decs Check status Room ROOM
 // @access Private
-router.post(`/check-available`, verifyToken, roomController.checkAvailable);
+router.post(`/check-available`, roomController.checkAvailable);
 
 // @route PUT api/room/
 // @decs upload Image
