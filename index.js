@@ -22,12 +22,11 @@ app.use(routes);
 // Serve static assets if in production
 if (process.env.NODE_ENV === 'production') {
   //set static
-  app.use(express.static(path.join(__dirname, 'client/build')));
+  app.use(express.static('app/client/build'));
   app.use(express.static('public'));
 
   app.get('*', (req, res) => {
-    const index = path.join(__dirname, 'client/build/index.html');
-    res.sendFile(index);
+    res.sendFile(path.resolve(__dirname, 'app/client/build', 'index.html'));
   });
 }
 
