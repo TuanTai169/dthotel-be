@@ -1,3 +1,4 @@
+const Booking = require('../models/Booking');
 const Service = require('../models/Service');
 
 const createService = async (req, res) => {
@@ -118,7 +119,30 @@ const updateService = async (req, res) => {
 };
 
 const deleteService = async (req, res) => {
+  const id = req.params.id;
   try {
+    const bookings = await Booking.find({ isDeleted: false });
+    const listService = [];
+    bookings.forEach((b) => {
+      if (Array.isArray(b.services) && b.services.length > 0) {
+        b.services.forEach((element) => {
+          listService.push(element.service.toString());
+        });
+      }
+      if (Array.isArray(b.products) && b.products.length > 0) {
+        b.products.forEach((element) => {
+          listService.push(element.product.toString());
+        });
+      }
+    });
+
+    if (listService.includes(id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Service is being used',
+      });
+    }
+
     const serviceDeleteCondition = { _id: req.params.id };
     const deleted = { isDeleted: true };
     let deletedService = await Service.findOneAndUpdate(

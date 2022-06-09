@@ -44,18 +44,22 @@ const createBooking = async (req, res) => {
     let totalRoomCharge = 0;
     let earlyCheckIn = 0;
     let lateCheckOut = 0;
-    if (hourDiff < 24) {
-      totalRoomCharge = await toolRoom.priceInHour(hourDiff, roomCharge);
-    } else {
-      const early = await toolRoom.earlyCheckIn(checkInDate, roomCharge);
-      const late = await toolRoom.lateCheckOut(checkOutDate, roomCharge);
+    if (req.params.book === 'check-in') {
+      if (hourDiff < 24) {
+        totalRoomCharge = await toolRoom.priceInHour(hourDiff, roomCharge);
+      } else {
+        const early = await toolRoom.earlyCheckIn(checkInDate, roomCharge);
+        const late = await toolRoom.lateCheckOut(checkOutDate, roomCharge);
 
-      earlyCheckIn = early.price;
-      lateCheckOut = late.price;
-      totalRoomCharge =
-        ((hourDiff - early.hour - late.hour) * roomCharge) / 24 +
-        earlyCheckIn +
-        lateCheckOut;
+        earlyCheckIn = early.price;
+        lateCheckOut = late.price;
+        totalRoomCharge =
+          ((hourDiff - early.hour - late.hour) * roomCharge) / 24 +
+          earlyCheckIn +
+          lateCheckOut;
+      }
+    } else {
+      totalRoomCharge = roomCharge;
     }
 
     // //Calculate service's price
@@ -211,7 +215,7 @@ const createBookingInWeb = async (req, res) => {
     const roomCharge = await toolRoom.calculateRoomCharge(rooms);
 
     // Calculate price
-    let totalRoomCharge = 0;
+    let totalRoomCharge = roomCharge;
     let earlyCheckIn = 0;
     let lateCheckOut = 0;
 
@@ -503,6 +507,7 @@ const cancelBooking = async (req, res) => {
   try {
     const booking = await Booking.findById(bookingID);
     const rooms = booking.rooms.map((r) => r.room);
+
     const status = booking.status;
     if (
       status === BookingStatus.checkIn.name ||
@@ -512,6 +517,18 @@ const cancelBooking = async (req, res) => {
         success: false,
         message: 'Booking has been check in or check out',
       });
+
+    if (
+      toolRoom.getNumberOfDays(
+        booking.rooms[0].checkInDate,
+        new Date().toJSON()
+      ) < 3
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: 'Booking must be cancelled before 3 days',
+      });
+    }
 
     //UPDATE
     const bookingUpdateCondition = { _id: bookingID };
@@ -532,7 +549,7 @@ const cancelBooking = async (req, res) => {
     res.json({
       success: true,
       message: 'Booking cancelled successfully',
-      updatedBooking,
+      booking,
     });
   } catch (error) {
     console.log(error);
