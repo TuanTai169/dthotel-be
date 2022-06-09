@@ -41,7 +41,7 @@ const createBooking = async (req, res) => {
     const roomCharge = await toolRoom.calculateRoomCharge(rooms);
 
     // Calculate price
-    let totalRoomCharge;
+    let totalRoomCharge = 0;
     let earlyCheckIn = 0;
     let lateCheckOut = 0;
     if (hourDiff < 24) {
@@ -211,7 +211,7 @@ const createBookingInWeb = async (req, res) => {
     const roomCharge = await toolRoom.calculateRoomCharge(rooms);
 
     // Calculate price
-    let totalRoomCharge;
+    let totalRoomCharge = 0;
     let earlyCheckIn = 0;
     let lateCheckOut = 0;
 
