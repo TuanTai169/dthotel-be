@@ -1,7 +1,7 @@
 const Coupon = require('../models/Coupon');
 
 const createCoupon = async (req, res) => {
-  const { code, discount, desc } = req.body;
+  const { code, discount, desc, startDate, endDate } = req.body;
 
   //Validation
   if (!code)
@@ -24,6 +24,8 @@ const createCoupon = async (req, res) => {
       code,
       discount,
       desc,
+      startDate,
+      endDate,
     });
 
     await newCoupon.save();
