@@ -148,7 +148,7 @@ exports.earlyCheckIn = (checkInDate, roomCharge) => {
 
   const start = moment(checkInDate, 'YYYY-MM-DD HH:mm');
   const end = moment(checkInDate, 'YYYY-MM-DD').set({
-    hours: 14,
+    hours: 12,
     minutes: 00,
   });
 
