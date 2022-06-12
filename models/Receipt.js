@@ -3,9 +3,8 @@ const Schema = mongoose.Schema;
 
 const ReceiptSchema = new Schema(
   {
-    booking: {
-      type: Schema.Types.ObjectId,
-      ref: 'bookings',
+    bookingDetail: {
+      type: Object,
     },
     paidOut: {
       type: Number,

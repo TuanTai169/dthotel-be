@@ -37,7 +37,7 @@ const createReceipt = async (req, res) => {
     }
 
     // Check for existing receipt
-    const receiptExist = await Receipt.findOne({ booking });
+    const receiptExist = await Receipt.findOne({ bookingDetail: bookingItem });
     if (receiptExist)
       return res.status(400).json({
         success: false,
@@ -46,7 +46,7 @@ const createReceipt = async (req, res) => {
 
     //ALL GOOD
     const newReceipt = new Receipt({
-      booking,
+      bookingDetail: bookingItem,
       paidOut,
       refund,
       modeOfPayment,

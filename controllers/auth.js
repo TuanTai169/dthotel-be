@@ -142,7 +142,7 @@ const forgotPassword = async (req, res) => {
 
     const message = `
       <div style="max-width: 700px; margin:auto; border: 4px solid #ddd; padding: 50px 20px; font-size: 110%;">
-      <h2 style="text-align: center; text-transform: uppercase;color: teal;">Welcome to the DTHSOFT</h2>
+      <h2 style="text-align: center; text-transform: uppercase;color: teal;">Welcome to the DT HOTEL</h2>
       <p>Just click the button below to reset your password !</p>
       
       <a href=${resetURL} style="background: crimson; text-decoration: none; color: white; padding: 10px 20px; margin: 10px 0; display: inline-block;">${txt}</a>

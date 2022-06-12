@@ -44,22 +44,19 @@ const createBooking = async (req, res) => {
     let totalRoomCharge = 0;
     let earlyCheckIn = 0;
     let lateCheckOut = 0;
-    if (req.params.book === 'check-in') {
-      if (hourDiff < 24) {
-        totalRoomCharge = await toolRoom.priceInHour(hourDiff, roomCharge);
-      } else {
-        const early = await toolRoom.earlyCheckIn(checkInDate, roomCharge);
-        const late = await toolRoom.lateCheckOut(checkOutDate, roomCharge);
 
-        earlyCheckIn = early.price;
-        lateCheckOut = late.price;
-        totalRoomCharge =
-          ((hourDiff - early.hour - late.hour) * roomCharge) / 24 +
-          earlyCheckIn +
-          lateCheckOut;
-      }
+    if (hourDiff < 24) {
+      totalRoomCharge = await toolRoom.priceInHour(hourDiff, roomCharge);
     } else {
-      totalRoomCharge = roomCharge;
+      const early = await toolRoom.earlyCheckIn(checkInDate, roomCharge);
+      const late = await toolRoom.lateCheckOut(checkOutDate, roomCharge);
+
+      earlyCheckIn = early.price;
+      lateCheckOut = late.price;
+      totalRoomCharge =
+        ((hourDiff - early.hour - late.hour) * roomCharge) / 24 +
+        earlyCheckIn +
+        lateCheckOut;
     }
 
     // //Calculate service's price
@@ -84,11 +81,13 @@ const createBooking = async (req, res) => {
     //Price
     const VAT = 10;
 
-    const totalPrice = parseFloat(
-      (totalRoomCharge + serviceCharge + productCharge) *
-        (1 + VAT / 100 - discountCharge / 100) -
-        deposit
-    ).toFixed(2);
+    const totalPrice = Number(
+      parseFloat(
+        (totalRoomCharge + serviceCharge + productCharge) *
+          (1 + VAT / 100 - discountCharge / 100) -
+          deposit
+      ).toFixed(2)
+    );
 
     const roomList = rooms.map((room) => {
       return { room, checkInDate, checkOutDate };
@@ -117,10 +116,11 @@ const createBooking = async (req, res) => {
       products: listProduct,
       deposit,
       discount: detailDiscount,
+      checkInDate,
+      checkOutDate,
       earlyCheckIn,
       lateCheckOut,
       totalPrice,
-      status,
     };
 
     const newBooking = new Booking({
@@ -192,18 +192,22 @@ const createBookingInWeb = async (req, res) => {
         message: 'Room has been booking or occupied on this day',
       });
 
-    //All good
-    const newCustomer = new Customer({
-      name,
-      email,
-      phone,
-      idNumber,
-      address,
-      numberOfPeople,
-    });
-    await newCustomer.save();
+    //Check customer existed
+    const existedCustomer = await Customer.findOne({ idNumber });
+    if (!existedCustomer) {
+      //All good
+      const newCustomer = new Customer({
+        name,
+        email,
+        phone,
+        idNumber,
+        address,
+        numberOfPeople,
+      });
+      await newCustomer.save();
+    }
 
-    const customerCurrent = await Customer.findOne({ email });
+    const customerCurrent = await Customer.findOne({ idNumber });
 
     //Generate code
     const code = 'DT' + Date.now().toString();
@@ -215,11 +219,25 @@ const createBookingInWeb = async (req, res) => {
     const roomCharge = await toolRoom.calculateRoomCharge(rooms);
 
     // Calculate price
-    let totalRoomCharge = roomCharge;
+    let totalRoomCharge = 0;
     let earlyCheckIn = 0;
     let lateCheckOut = 0;
 
-    // //Calculate service's price
+    if (hourDiff < 24) {
+      totalRoomCharge = await toolRoom.priceInHour(hourDiff, roomCharge);
+    } else {
+      const early = await toolRoom.earlyCheckIn(checkInDate, roomCharge);
+      const late = await toolRoom.lateCheckOut(checkOutDate, roomCharge);
+
+      earlyCheckIn = early.price;
+      lateCheckOut = late.price;
+      totalRoomCharge =
+        ((hourDiff - early.hour - late.hour) * roomCharge) / 24 +
+        earlyCheckIn +
+        lateCheckOut;
+    }
+
+    //Calculate service's price
     const serviceCharge = await toolService.calculateServiceCharge(
       services,
       'service'
@@ -238,11 +256,13 @@ const createBookingInWeb = async (req, res) => {
     //Price
     const VAT = 10;
 
-    const totalPrice = (
-      (totalRoomCharge + serviceCharge + productCharge) *
-        (1 + VAT / 100 - discountCharge / 100) -
-      deposit
-    ).toFixed();
+    const totalPrice = Number(
+      parseFloat(
+        (totalRoomCharge + serviceCharge + productCharge) *
+          (1 + VAT / 100 - discountCharge / 100) -
+          deposit
+      ).toFixed(2)
+    );
 
     const roomList = rooms.map((room) => {
       return { room, checkInDate, checkOutDate };
@@ -269,10 +289,11 @@ const createBookingInWeb = async (req, res) => {
       products: listProduct,
       deposit,
       discount: detailDiscount,
+      checkInDate,
+      checkOutDate,
       earlyCheckIn,
       lateCheckOut,
       totalPrice,
-      status,
     };
 
     const newBooking = new Booking({
@@ -451,10 +472,11 @@ const updateBooking = async (req, res) => {
       products: listProduct,
       deposit,
       discount: detailDiscount,
+      checkInDate,
+      checkOutDate,
       earlyCheckIn,
       lateCheckOut,
       totalPrice,
-      status,
     };
 
     //All good
@@ -549,7 +571,7 @@ const cancelBooking = async (req, res) => {
     res.json({
       success: true,
       message: 'Booking cancelled successfully',
-      booking,
+      booking: updatedBooking,
     });
   } catch (error) {
     console.log(error);
@@ -617,23 +639,38 @@ const changeRoom = async (req, res) => {
 
     //Price
     const VAT = 10;
-    const totalPrice = (
-      (totalRoomCharge + serviceCharge + productCharge) *
-        (1 + VAT / 100 - discountCharge / 100) -
-      booking.deposit
-    ).toFixed();
+    const totalPrice = Number(
+      parseFloat(
+        (totalRoomCharge + serviceCharge + productCharge) *
+          (1 + VAT / 100 - discountCharge / 100) -
+          booking.deposit
+      ).toFixed(2)
+    );
 
     const roomList = newRooms.map((room) => {
       return { room, checkInDate, checkOutDate };
     });
+
     //UPDATE
     const bookingUpdateCondition = { _id: bookingID };
+
+    // Save to object detail
+    const listRoom = await toolRoom.getAllInfoRoom(rooms);
+
+    let detail = {
+      ...booking.detail,
+      rooms: listRoom,
+      earlyCheckIn,
+      lateCheckOut,
+      totalPrice,
+    };
 
     let updateBooking = {
       rooms: roomList,
       earlyCheckIn,
       lateCheckOut,
       totalPrice,
+      detail,
     };
 
     let updatedBooking = await Booking.findOneAndUpdate(

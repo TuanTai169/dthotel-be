@@ -55,11 +55,11 @@ const createCustomer = async (req, res) => {
     });
   try {
     //Check for existing customer
-    const customerExist = await Customer.findOne({ email });
+    const customerExist = await Customer.findOne({ idNumber });
     if (customerExist)
       return res.status(400).json({
         success: false,
-        message: 'Email already existed',
+        message: 'Customer already existed',
       });
 
     //All good
@@ -93,11 +93,11 @@ const updateCustomer = async (req, res) => {
   const id = req.params.id;
   try {
     //Check for existing customer
-    const customerExist = await Customer.findOne({ email });
+    const customerExist = await Customer.findOne({ idNumber });
     if (customerExist && customerExist?.id !== id)
       return res.status(400).json({
         success: false,
-        message: 'Email already existed',
+        message: 'Customer already existed',
       });
 
     //All good

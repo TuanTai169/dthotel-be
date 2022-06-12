@@ -10,7 +10,6 @@ const CustomerSchema = new Schema(
     email: {
       type: String,
       required: true,
-      unique: true,
     },
     phone: {
       type: String,
@@ -18,7 +17,7 @@ const CustomerSchema = new Schema(
     },
     idNumber: {
       type: String,
-      min: 12,
+      unique: true,
     },
     address: {
       type: String,

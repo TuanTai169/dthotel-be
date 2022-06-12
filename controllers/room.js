@@ -10,6 +10,7 @@ const {
   RoomStatus,
 } = require('../config/constants');
 const { uploadImage } = require('../utils/google-api');
+const Booking = require('../models/Booking');
 
 const createRoom = async (req, res) => {
   const {
