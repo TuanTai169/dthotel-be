@@ -37,7 +37,7 @@ const createReceipt = async (req, res) => {
     }
 
     // Check for existing receipt
-    const receiptExist = await Receipt.findOne({ bookingDetail: bookingItem });
+    const receiptExist = await Receipt.findOne({ booking });
     if (receiptExist)
       return res.status(400).json({
         success: false,
@@ -46,7 +46,7 @@ const createReceipt = async (req, res) => {
 
     //ALL GOOD
     const newReceipt = new Receipt({
-      bookingDetail: bookingItem,
+      booking,
       paidOut,
       refund,
       modeOfPayment,
@@ -95,7 +95,7 @@ const createReceipt = async (req, res) => {
 
 const getAllReceipts = async (req, res) => {
   try {
-    const receipts = await Receipt.find({ isActive: true }).populate({
+    const receipts = await Receipt.find({ isDeleted: false }).populate({
       path: 'booking',
       select: 'detail',
     });
