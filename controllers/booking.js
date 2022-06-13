@@ -390,6 +390,7 @@ const getBookingById = async (req, res) => {
 
 const updateBooking = async (req, res) => {
   const {
+    code,
     rooms,
     customer,
     checkInDate,
@@ -463,6 +464,8 @@ const updateBooking = async (req, res) => {
     const detailDiscount = await Coupon.findById(discount).select(
       'code discount desc'
     );
+
+    const customerCurrent = await Customer.findOne({ customer });
 
     const detail = {
       code,
