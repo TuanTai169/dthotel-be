@@ -134,9 +134,7 @@ const forgotPassword = async (req, res) => {
     });
 
     // Send it to user's email
-    const resetURL = `${req.protocol}://${req.get(
-      'host'
-    )}/admin/reset-password/${resetToken}`;
+    const resetURL = `https://dthotel-kltn.vercel.app/admin/reset-password/${resetToken}`;
 
     const txt = 'Reset your password';
 
