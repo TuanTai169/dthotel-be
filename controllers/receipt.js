@@ -228,7 +228,7 @@ const statistic = async (req, res) => {
     ];
 
     let totalRevenue = _.sumBy(receipts, (item) =>
-      parseFloat(item.booking.detail.totalPrice)
+      Number(parseFloat(item.booking.detail.totalPrice).toFixed(2))
     );
 
     _.forEach(receipts, (item) => {
@@ -309,9 +309,12 @@ const statistic = async (req, res) => {
         instance.booking.rooms[0].checkOutDate
       );
       _.forEach(instance.booking.detail.rooms, (item) => {
+        const type = allTypes.find(
+          (x) => x._id.toString() === item.roomType.toString()
+        );
         let newRoom = {
           room: item.roomNumber,
-          type: item.roomType,
+          type: type.nameTag,
           price: item.price * dayDiff,
           additional: 0,
           checkInDate: instance.booking.rooms[0].checkInDate,
