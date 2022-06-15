@@ -21,7 +21,7 @@ router.get('/', verifyToken, convenienceController.getAllConveniences);
 // @route GET api/Convenience/:id
 // @decs READ 1 Convenience
 // @access Private
-router.get('/:id', verifyToken, convenienceController.getConvenienceById);
+// router.get('/:id', verifyToken, convenienceController.getConvenienceById);
 
 // @route PUT api/Convenience/
 // @decs UPDATE Convenience

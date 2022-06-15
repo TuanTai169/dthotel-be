@@ -14,7 +14,7 @@ router.get('/', verifyToken, userController.getUser);
 // @route GET api/user/
 // @decs READ a user
 // @access Private
-router.get('/:id', verifyToken, userController.getUserById);
+// router.get('/:id', verifyToken, userController.getUserById);
 
 // @route POST api/user/
 // @decs CREATE user

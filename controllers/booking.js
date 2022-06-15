@@ -547,7 +547,11 @@ const cancelBooking = async (req, res) => {
       toolRoom.getNumberOfDays(
         booking.rooms[0].checkInDate,
         new Date().toJSON()
-      ) < 3
+      ) > 0 &&
+      toolRoom.getNumberOfDays(
+        booking.rooms[0].checkInDate,
+        new Date().toJSON() < 3
+      )
     ) {
       return res.status(400).json({
         success: false,

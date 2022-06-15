@@ -16,7 +16,7 @@ router.get('/', verifyToken, couponController.getAllCoupons);
 // @route GET api/coupon/:id
 // @decs READ 1 coupon
 // @access Private
-router.get('/:id', verifyToken, couponController.getCouponById);
+// router.get('/:id', verifyToken, couponController.getCouponById);
 
 // @route PUT api/coupon/
 // @decs UPDATE coupon

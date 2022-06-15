@@ -22,7 +22,7 @@ router.get('/all-by-floor/:floor', verifyToken, roomController.getRoomByFloor);
 // @route GET api/room/:id
 // @decs READ 1 ROOM
 // @access Private
-router.get('/:id', verifyToken, roomController.getRoomById);
+// router.get('/:id', verifyToken, roomController.getRoomById);
 
 // @route PUT api/room/
 // @decs UPDATE room by ID

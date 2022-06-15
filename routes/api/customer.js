@@ -14,7 +14,7 @@ router.get('/', verifyToken, customerController.getAllCustomer);
 // @route GET api/customer/
 // @decs READ 1 customer
 // @access Private
-router.get('/:id', verifyToken, customerController.getCustomerById);
+// router.get('/:id', verifyToken, customerController.getCustomerById);
 
 // @route PUT api/customer/
 // @decs UPDATE customer

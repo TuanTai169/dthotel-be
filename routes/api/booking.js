@@ -20,7 +20,7 @@ router.get('/', verifyToken, bookingController.getAllBooking);
 // @route GET api/booking/
 // @decs READ 1 BOOKING/CHECK-IN
 // @access Private
-router.get('/:id', verifyToken, bookingController.getBookingById);
+// router.get('/:id', verifyToken, bookingController.getBookingById);
 
 // @route PUT api/booking/
 // @decs UPDATE booking

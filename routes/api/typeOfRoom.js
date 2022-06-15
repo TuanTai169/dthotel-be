@@ -16,7 +16,7 @@ router.get('/', verifyToken, typeController.getAllTypes);
 // @route GET api/Type/:id
 // @decs READ 1 Type
 // @access Private
-router.get('/:id', verifyToken, typeController.getTypeById);
+// router.get('/:id', verifyToken, typeController.getTypeById);
 
 // @route PUT api/Type/
 // @decs UPDATE Type

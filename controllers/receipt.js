@@ -9,6 +9,7 @@ const toolReceipt = require('../tools/receiptTool');
 const { sendEmail } = require('../utils/google-api');
 const { receiptValidation } = require('../tools/validation');
 const { RoomStatus, BookingStatus } = require('../config/constants');
+const TypeOfRoom = require('../models/TypeOfRoom');
 
 const createReceipt = async (req, res) => {
   const { booking, paidOut, refund, modeOfPayment } = req.body;
@@ -164,244 +165,245 @@ const updateReceipt = async (req, res) => {
   }
 };
 
-// const statistic = async (req, res) => {
-//   try {
-//     // RECEIPTS
-//     const receipts = await Receipt.find({ isActive: true }).populate({
-//       path: 'booking',
-//       select: ' -createdAt -updatedAt',
-//       populate: [
-//         { path: 'customer', select: 'name email phone' },
-//         {
-//           path: 'rooms',
-//           select: 'roomNumber floor price roomType status',
-//         },
-//         {
-//           path: 'services',
-//           select: 'name price',
-//         },
-//       ],
-//     });
+const statistic = async (req, res) => {
+  try {
+    // RECEIPTS
+    const receipts = await Receipt.find({ isDeleted: false }).populate({
+      path: 'booking',
+      select: 'detail rooms',
+    });
 
-//     // BOOKING
-//     const allBookings = await Booking.find()
-//       .populate({ path: 'customer', select: 'name email phone' })
-//       .populate({
-//         path: 'rooms',
-//         select: 'roomNumber floor price roomType status',
-//       })
-//       .populate({
-//         path: 'services',
-//         select: 'name price',
-//       });
+    // BOOKING
+    const allBookings = await Booking.find()
+      .populate({ path: 'customer', select: 'name email phone' })
+      .populate({
+        path: 'rooms',
+        select: 'roomNumber floor price roomType status',
+      })
+      .populate({
+        path: 'services',
+        select: 'name price',
+      })
+      .populate({
+        path: 'products',
+        select: 'name price',
+      })
+      .populate({
+        path: 'discount',
+        select: 'code discount desc ',
+      });
 
-//     let map_month = [];
-//     let map_booking_day = [];
-//     let map_service = [];
-//     let map_user = [];
-//     let map_room = [];
-//     let map_room_status = [];
-//     let invoiceRevenue = [];
-//     const monthNames = [
-//       'Jan',
-//       'Feb',
-//       'Mar',
-//       'Apr',
-//       'May',
-//       'Jun',
-//       'Jul',
-//       'Aug',
-//       'Sep',
-//       'Oct',
-//       'Nov',
-//       'Dec',
-//     ];
-//     const dayNames = [
-//       'Monday',
-//       'Tuesday',
-//       'Wednesday',
-//       'Thursday',
-//       'Friday',
-//       'Saturday',
-//       'Sunday',
-//     ];
+    // type of room
+    const allTypes = await TypeOfRoom.find({ isDeleted: false });
 
-//     let totalRevenue = _.sumBy(receipts, (item) => item.booking.totalPrice);
+    let map_month = [];
+    let map_booking_day = [];
+    let map_service = [];
+    let map_user = [];
+    let map_room = [];
+    let map_room_status = [];
+    let invoiceRevenue = [];
+    const monthNames = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    const dayNames = [
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+      'Sunday',
+    ];
 
-//     _.forEach(receipts, (item) => {
-//       let invoice = {
-//         bookingId: item.booking.code,
-//         customer: item.booking.customer.name,
-//         checkInDate: item.booking.checkInDate,
-//         checkOutDate: item.booking.checkOutDate,
-//         deposit: item.booking.deposit,
-//         serviceCharge: item.booking.serviceCharge,
-//         roomCharge: item.booking.roomCharge,
-//         discount: item.booking.discount,
-//         VAT: parseInt(
-//           (
-//             item.booking.totalPrice -
-//             item.booking.totalPrice / (item.booking.VAT / 100 + 1)
-//           ).toFixed()
-//         ),
-//         totalPrice: item.booking.totalPrice,
-//         paidOut: item.paidOut,
-//         refund: item.refund,
-//       };
-//       invoiceRevenue.push(invoice);
-//     });
+    let totalRevenue = _.sumBy(
+      receipts,
+      (item) => item.booking.detail.totalPrice
+    );
 
-//     const groupByMonth = _.groupBy(allBookings, (instance) => {
-//       return moment(new Date(instance.createdAt)).format('MMM');
-//     });
+    _.forEach(receipts, (item) => {
+      let invoice = {
+        bookingId: item.booking.detail.code,
+        customer: item.booking.detail.customer.name,
+        checkInDate: item.booking.rooms[0].checkInDate,
+        checkOutDate: item.booking.rooms[0].checkOutDate,
+        deposit: item.booking.detail.deposit,
+        discount: item.booking.detail.discount,
+        VAT: 10,
+        totalPrice: item.booking.detail.totalPrice,
+        paidOut: item.paidOut,
+        refund: item.refund,
+      };
+      invoiceRevenue.push(invoice);
+    });
 
-//     const groupByDay = _.groupBy(allBookings, (instance) => {
-//       return moment(new Date(instance.createdAt)).format('dddd');
-//     });
+    const groupByMonth = _.groupBy(allBookings, (instance) => {
+      return moment(new Date(instance.createdAt)).format('MMM');
+    });
 
-//     // FOREACH
-//     _.forEach(monthNames, (value) => {
-//       if (groupByMonth[value] !== undefined) {
-//         let newItem = { month: value, amount: groupByMonth[value].length };
-//         map_month.push(newItem);
-//       }
-//     });
+    const groupByDay = _.groupBy(allBookings, (instance) => {
+      return moment(new Date(instance.createdAt)).format('dddd');
+    });
 
-//     _.forEach(allBookings, (booking) => {
-//       _.forEach(booking.rooms, (room) => {
-//         let newRoom = { type: room.roomType };
-//         map_room_status.push(newRoom);
-//       });
-//     });
+    // FOREACH
+    _.forEach(monthNames, (value) => {
+      if (groupByMonth[value] !== undefined) {
+        let newItem = { month: value, amount: groupByMonth[value].length };
+        map_month.push(newItem);
+      }
+    });
 
-//     _.forEach(dayNames, (value) => {
-//       if (groupByDay[value] !== undefined) {
-//         let newItem = { day: value, amount: groupByDay[value].length };
-//         map_booking_day.push(newItem);
-//       }
-//     });
+    _.forEach(allBookings, (booking) => {
+      _.forEach(booking.detail.rooms, (room) => {
+        const type = allTypes.find(
+          (x) => x._id.toString() === room.roomType.toString()
+        );
 
-//     // USER
-//     _.forEach(receipts, (item) => {
-//       let newItem = {
-//         name: item.booking.customer.name,
-//         total: item.booking.totalPrice + item.booking.deposit,
-//       };
-//       map_user.push(newItem);
-//     });
+        let newRoom = { type: type.nameTag };
+        map_room_status.push(newRoom);
+      });
+    });
 
-//     const users = map_user.reduce((acc, item) => {
-//       let existItem = acc.find(({ name }) => item.name === name);
-//       if (existItem) {
-//         existItem.total += item.total;
-//       } else {
-//         acc.push(item);
-//       }
-//       return acc;
-//     }, []);
+    _.forEach(dayNames, (value) => {
+      if (groupByDay[value] !== undefined) {
+        let newItem = { day: value, amount: groupByDay[value].length };
+        map_booking_day.push(newItem);
+      }
+    });
 
-//     // ROOMS
+    // USER
+    _.forEach(receipts, (item) => {
+      let newItem = {
+        name: item.booking.detail.customer.name,
+        total: item.booking.detail.totalPrice + item.booking.detail.deposit,
+      };
+      map_user.push(newItem);
+    });
 
-//     _.forEach(receipts, (instance) => {
-//       let rooms = [];
-//       let dayDiff = toolRoom.getNumberOfDays(
-//         instance.booking.checkInDate,
-//         instance.booking.checkOutDate
-//       );
-//       _.forEach(instance.booking.rooms, (item) => {
-//         let newRoom = {
-//           room: item.roomNumber,
-//           type: item.roomType,
-//           price: item.price * dayDiff,
-//           additional: 0,
-//           checkInDate: instance.booking.checkInDate,
-//           checkOutDate: instance.booking.checkOutDate,
-//         };
-//         rooms.push(newRoom);
-//       });
-//       _.forEach(rooms, (item) => map_room.push(item));
-//     });
+    const users = map_user.reduce((acc, item) => {
+      let existItem = acc.find(({ name }) => item.name === name);
+      if (existItem) {
+        existItem.total += item.total;
+      } else {
+        acc.push(item);
+      }
+      return acc;
+    }, []);
 
-//     const rooms = Object.values(
-//       map_room.reduce((r, { room, price, type }) => {
-//         if (r[room] !== undefined) {
-//           r[room].count++;
-//           r[room].totalPrice += price;
-//         } else
-//           r[room] = {
-//             room,
-//             type,
-//             count: 1,
-//             totalPrice: price,
-//           };
+    // ROOMS
 
-//         return r;
-//       }, {})
-//     );
+    _.forEach(receipts, (instance) => {
+      let rooms = [];
+      let dayDiff = toolRoom.getNumberOfDays(
+        instance.booking.rooms[0].checkInDate,
+        instance.booking.rooms[0].checkOutDate
+      );
+      _.forEach(instance.booking.detail.rooms, (item) => {
+        let newRoom = {
+          room: item.roomNumber,
+          type: item.roomType,
+          price: item.price * dayDiff,
+          additional: 0,
+          checkInDate: instance.booking.rooms[0].checkInDate,
+          checkOutDate: instance.booking.rooms[0].checkOutDate,
+        };
+        rooms.push(newRoom);
+      });
+      _.forEach(rooms, (item) => map_room.push(item));
+    });
 
-//     // STATUS'S ROOM ARRAY
-//     const statusRoom = Object.values(
-//       map_room_status.reduce((r, { type }) => {
-//         if (r[type] !== undefined) {
-//           r[type].count++;
-//         } else r[type] = { type, count: 1 };
-//         return r;
-//       }, {})
-//     );
-//     // SERVICE
-//     _.forEach(receipts, (instance) => {
-//       let services = [];
-//       _.forEach(instance.booking.services, (item) => {
-//         let newService = {
-//           service: item.name,
-//           price: item.price,
-//           bookingId: instance.booking.code,
-//           checkOutDate: instance.booking.checkOutDate,
-//         };
-//         services.push(newService);
-//       });
-//       _.forEach(services, (item) => map_service.push(item));
-//     });
+    const rooms = Object.values(
+      map_room.reduce((r, { room, price, type }) => {
+        if (r[room] !== undefined) {
+          r[room].count++;
+          r[room].totalPrice += price;
+        } else
+          r[room] = {
+            room,
+            type,
+            count: 1,
+            totalPrice: price,
+          };
 
-//     const services = Object.values(
-//       map_service.reduce((r, { service, price }) => {
-//         if (r[service] !== undefined) {
-//           r[service].count++;
-//           r[service].totalPrice += price;
-//         } else r[service] = { service, count: 1, totalPrice: price };
-//         return r;
-//       }, {})
-//     );
+        return r;
+      }, {})
+    );
 
-//     const statistic = {
-//       totalRevenue,
-//       invoiceRevenue,
-//       map_booking_day,
-//       map_month,
-//       map_room,
-//       map_service,
-//       users,
-//       rooms,
-//       services,
-//       statusRoom,
-//     };
+    // STATUS'S ROOM ARRAY
+    const statusRoom = Object.values(
+      map_room_status.reduce((r, { type }) => {
+        if (r[type] !== undefined) {
+          r[type].count++;
+        } else r[type] = { type, count: 1 };
+        return r;
+      }, {})
+    );
+    // SERVICE
+    _.forEach(receipts, (instance) => {
+      let services = [];
+      _.forEach(instance.booking.detail.services, (item) => {
+        let newService = {
+          service: item.name,
+          price: item.price,
+          bookingId: instance.booking.detail.code,
+          checkOutDate: instance.booking.rooms[0].checkOutDate,
+        };
+        services.push(newService);
+      });
+      _.forEach(services, (item) => map_service.push(item));
+    });
 
-//     res.json({
-//       success: true,
-//       statistic,
-//     });
-//   } catch (error) {
-//     console.log(error);
-//     res.status(500).json({
-//       success: false,
-//       message: 'Internal server error',
-//     });
-//   }
-// };
+    const services = Object.values(
+      map_service.reduce((r, { service, price }) => {
+        if (r[service] !== undefined) {
+          r[service].count++;
+          r[service].totalPrice += price;
+        } else r[service] = { service, count: 1, totalPrice: price };
+        return r;
+      }, {})
+    );
+
+    const statistic = {
+      totalRevenue,
+      invoiceRevenue,
+      map_booking_day,
+      map_month,
+      map_room,
+      map_service,
+      users,
+      rooms,
+      services,
+      statusRoom,
+    };
+
+    res.json({
+      success: true,
+      statistic,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+    });
+  }
+};
 
 module.exports = {
   createReceipt,
   getAllReceipts,
   getReceiptById,
   updateReceipt,
+  statistic,
 };
