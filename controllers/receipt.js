@@ -227,9 +227,8 @@ const statistic = async (req, res) => {
       'Sunday',
     ];
 
-    let totalRevenue = _.sumBy(
-      receipts,
-      (item) => item.booking.detail.totalPrice
+    let totalRevenue = _.sumBy(receipts, (item) =>
+      parseFloat(item.booking.detail.totalPrice)
     );
 
     _.forEach(receipts, (item) => {
