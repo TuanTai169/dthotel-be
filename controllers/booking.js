@@ -120,7 +120,7 @@ const createBooking = async (req, res) => {
       checkOutDate,
       earlyCheckIn,
       lateCheckOut,
-      totalPrice,
+      totalPrice: Number(totalPrice),
     };
 
     const newBooking = new Booking({

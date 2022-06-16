@@ -10,6 +10,7 @@ const { sendEmail } = require('../utils/google-api');
 const { receiptValidation } = require('../tools/validation');
 const { RoomStatus, BookingStatus } = require('../config/constants');
 const TypeOfRoom = require('../models/TypeOfRoom');
+const Service = require('../models/Service');
 
 const createReceipt = async (req, res) => {
   const { booking, paidOut, refund, modeOfPayment } = req.body;
@@ -170,7 +171,7 @@ const statistic = async (req, res) => {
     // RECEIPTS
     const receipts = await Receipt.find({ isDeleted: false }).populate({
       path: 'booking',
-      select: 'detail rooms',
+      select: 'code detail rooms services products',
     });
 
     // BOOKING
@@ -195,6 +196,9 @@ const statistic = async (req, res) => {
 
     // type of room
     const allTypes = await TypeOfRoom.find({ isDeleted: false });
+
+    // services
+    const allServices = await Service.find({ isDeleted: false });
 
     let map_month = [];
     let map_booking_day = [];
@@ -233,14 +237,14 @@ const statistic = async (req, res) => {
 
     _.forEach(receipts, (item) => {
       let invoice = {
-        bookingId: item.booking.detail.code,
+        bookingId: item.booking.code,
         customer: item.booking.detail.customer.name,
         checkInDate: item.booking.rooms[0].checkInDate,
         checkOutDate: item.booking.rooms[0].checkOutDate,
         deposit: item.booking.detail.deposit,
         discount: item.booking.detail.discount,
         VAT: 10,
-        totalPrice: item.booking.detail.totalPrice,
+        totalPrice: parseFloat(item.booking.detail.totalPrice),
         paidOut: item.paidOut,
         refund: item.refund,
       };
@@ -285,7 +289,9 @@ const statistic = async (req, res) => {
     _.forEach(receipts, (item) => {
       let newItem = {
         name: item.booking.detail.customer.name,
-        total: item.booking.detail.totalPrice + item.booking.detail.deposit,
+        total:
+          parseFloat(item.booking.detail.totalPrice) +
+          parseFloat(item.booking.detail.deposit),
       };
       map_user.push(newItem);
     });
@@ -354,11 +360,28 @@ const statistic = async (req, res) => {
     // SERVICE
     _.forEach(receipts, (instance) => {
       let services = [];
-      _.forEach(instance.booking.detail.services, (item) => {
+      _.forEach(instance.booking.services, (item) => {
+        const service = allServices.find(
+          (x) => x._id.toString() === item.service.toString()
+        );
         let newService = {
-          service: item.name,
-          price: item.price,
-          bookingId: instance.booking.detail.code,
+          service: service.name,
+          price: service.price,
+          amount: item.amount,
+          bookingId: instance.booking.code,
+          checkOutDate: instance.booking.rooms[0].checkOutDate,
+        };
+        services.push(newService);
+      });
+      _.forEach(instance.booking.products, (item) => {
+        const product = allServices.find(
+          (x) => x._id.toString() === item.product.toString()
+        );
+        let newService = {
+          service: product.name,
+          price: product.price,
+          amount: item.amount,
+          bookingId: instance.booking.code,
           checkOutDate: instance.booking.rooms[0].checkOutDate,
         };
         services.push(newService);
@@ -367,11 +390,11 @@ const statistic = async (req, res) => {
     });
 
     const services = Object.values(
-      map_service.reduce((r, { service, price }) => {
+      map_service.reduce((r, { service, amount, price }) => {
         if (r[service] !== undefined) {
-          r[service].count++;
-          r[service].totalPrice += price;
-        } else r[service] = { service, count: 1, totalPrice: price };
+          r[service].count += amount;
+          r[service].totalPrice += price * amount;
+        } else r[service] = { service, count: amount, totalPrice: price };
         return r;
       }, {})
     );
