@@ -276,6 +276,7 @@ const uploadAvatar = async (req, res) => {
     res.json({
       success: true,
       message: 'Upload avatar successfully',
+      updatedImg: { src, alt: file.name },
     });
   } catch (error) {
     res.status(500).json({
