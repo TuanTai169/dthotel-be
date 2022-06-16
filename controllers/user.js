@@ -212,7 +212,7 @@ const changePassword = async (req, res) => {
 
     res.json({
       success: true,
-      message: 'Password changed successfully.',
+      message: 'Password changed successfully. Please login again !',
       updatedUser,
     });
   } catch (error) {
