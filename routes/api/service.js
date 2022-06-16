@@ -16,7 +16,7 @@ router.get('/', verifyToken, serviceController.getAllServices);
 // @route GET api/service/:id
 // @decs READ 1 service
 // @access Private
-// router.get('/:id', verifyToken, serviceController.getServiceById);
+router.get('/:id', verifyToken, serviceController.getServiceById);
 
 // @route PUT api/service/
 // @decs UPDATE service

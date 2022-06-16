@@ -17,12 +17,12 @@ router.get('/', roomController.getAllRooms);
 // @route GET api/room/:floor
 // @decs SORT room by floor
 // @access Private
-router.get('/all-by-floor/:floor', verifyToken, roomController.getRoomByFloor);
+router.get('/all-by-floor/:floor', roomController.getRoomByFloor);
 
 // @route GET api/room/:id
 // @decs READ 1 ROOM
 // @access Private
-router.get('/:id', verifyToken, roomController.getRoomById);
+router.get('/:id', roomController.getRoomById);
 
 // @route PUT api/room/
 // @decs UPDATE room by ID
