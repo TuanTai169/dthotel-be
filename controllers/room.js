@@ -308,12 +308,11 @@ const changePriceRoom = async (req, res) => {
 
     if (Array.isArray(list) && list.length > 0) {
       await toolRoom.changePriceArrayRooms(list, ratio);
+      res.json({
+        success: true,
+        message: `Price updated successfully`,
+      });
     }
-
-    res.json({
-      success: true,
-      message: `Price updated successfully`,
-    });
   } catch (error) {
     console.log(error);
     res.status(500).json({
