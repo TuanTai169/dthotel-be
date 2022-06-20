@@ -49,7 +49,7 @@ exports.changePriceArrayRooms = async (rooms, percent) => {
     for (const room of listRoom) {
       const filter = { _id: room._id };
       const update = {
-        price: Number.parseFloat(room.price * (1 + percent)).toFixed(2),
+        price: Number.parseFloat(room.price * (1 + percent)).toFixed(0),
       };
       updatedRoom = await Room.findByIdAndUpdate(filter, update, {
         new: true,
