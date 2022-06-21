@@ -8,6 +8,7 @@ const toolRoom = require('../tools/roomTool');
 const toolService = require('../tools/serviceTool');
 const { customerValidation } = require('../tools/validation');
 const { RoomStatus, BookingStatus } = require('../config/constants');
+const { sendEmail } = require('../utils/google-api');
 
 const createBooking = async (req, res) => {
   const {
@@ -154,7 +155,7 @@ const createBooking = async (req, res) => {
               <div style="max-width: 700px; margin:auto; border: 8px solid #ddd; padding: 50px 20px; font-size: 110%;">
               <h2 style="text-align: center; text-transform: uppercase; color: teal;">Thank to customer</h2>
               <p> Dear <strong> ${customer.name}</strong>!</p>
-              <p> Booking Code:  <strong> ${code}</strong>!</p>
+              <p> Booking Code:  <strong> ${code}</strong></p>
               <p>Thank you booking for our hotel! See you again on the closest day!</p>
               </div>
             `;
@@ -340,7 +341,7 @@ const createBookingInWeb = async (req, res) => {
                <div style="max-width: 700px; margin:auto; border: 8px solid #ddd; padding: 50px 20px; font-size: 110%;">
                <h2 style="text-align: center; text-transform: uppercase; color: teal;">Thank to customer</h2>
                <p> Dear <strong> ${customerCurrent.name}</strong>!</p>
-               <p> Booking Code:  <strong> ${code}</strong>!</p>
+               <p> Booking Code:  <strong> ${code}</strong></p>
                <p>Thank you booking for our hotel! See you again on the closest day!</p>
                </div>
              `;
