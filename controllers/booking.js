@@ -147,6 +147,24 @@ const createBooking = async (req, res) => {
         : RoomStatus.Occupied.name;
     await toolRoom.changeStatusArrayRooms(rooms, statusOfRoom);
 
+    //Send to customer email
+    const customerExist = await Customer.findById(customer);
+
+    const message = `
+              <div style="max-width: 700px; margin:auto; border: 8px solid #ddd; padding: 50px 20px; font-size: 110%;">
+              <h2 style="text-align: center; text-transform: uppercase; color: teal;">Thank to customer</h2>
+              <p> Dear <strong> ${customer.name}</strong>!</p>
+              <p> Booking Code:  <strong> ${code}</strong>!</p>
+              <p>Thank you booking for our hotel! See you again on the closest day!</p>
+              </div>
+            `;
+
+    await sendEmail({
+      email: customerExist.email,
+      subject: `THANK YOU BOOKING!`,
+      message,
+    });
+
     res.json({
       success: true,
       message: `${status} successfully`,
@@ -315,6 +333,23 @@ const createBookingInWeb = async (req, res) => {
 
     //Change STATUS ROOM
     await toolRoom.changeStatusArrayRooms(rooms, status);
+
+    //Send to customer email
+
+    const message = `
+               <div style="max-width: 700px; margin:auto; border: 8px solid #ddd; padding: 50px 20px; font-size: 110%;">
+               <h2 style="text-align: center; text-transform: uppercase; color: teal;">Thank to customer</h2>
+               <p> Dear <strong> ${customerCurrent.name}</strong>!</p>
+               <p> Booking Code:  <strong> ${code}</strong>!</p>
+               <p>Thank you booking for our hotel! See you again on the closest day!</p>
+               </div>
+             `;
+
+    await sendEmail({
+      email: customerCurrent.email,
+      subject: `THANK YOU BOOKING!`,
+      message,
+    });
 
     res.json({
       success: true,
