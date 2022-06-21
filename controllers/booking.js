@@ -501,24 +501,24 @@ const updateBooking = async (req, res) => {
 
     const bookingUpdateCondition = { _id: req.params.id };
 
-    // let updatedBooking = await Booking.findOneAndUpdate(
-    //   bookingUpdateCondition,
-    //   updateBooking,
-    //   {
-    //     new: true,
-    //   }
-    // );
-    // //Change STATUS ROOM
-    // const statusRoom =
-    //   status === BookingStatus.checkIn.name
-    //     ? RoomStatus.Occupied.name
-    //     : RoomStatus.Booking.name;
-    // await toolRoom.changeStatusArrayRooms(rooms, statusRoom);
+    let updatedBooking = await Booking.findOneAndUpdate(
+      bookingUpdateCondition,
+      updateBooking,
+      {
+        new: true,
+      }
+    );
+    //Change STATUS ROOM
+    const statusRoom =
+      status === BookingStatus.checkIn.name
+        ? RoomStatus.Occupied.name
+        : RoomStatus.Booking.name;
+    await toolRoom.changeStatusArrayRooms(rooms, statusRoom);
 
     res.json({
       success: true,
       message: 'Booking updated successfully',
-      updateBooking,
+      updatedBooking,
     });
   } catch (error) {
     console.log(error);

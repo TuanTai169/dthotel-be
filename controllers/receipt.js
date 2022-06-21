@@ -54,33 +54,33 @@ const createReceipt = async (req, res) => {
       modeOfPayment,
     });
 
-    // await newReceipt.save();
+    await newReceipt.save();
 
-    // //Change STATUS ROOM
-    // await toolRoom.changeStatusArrayRooms(
-    //   bookingItem.rooms.map((r) => r.room),
-    //   RoomStatus.Cleaning.name
-    // );
-    // //Change STATUS RECEIPT
-    // await toolReceipt.changeStatusBooking(booking, BookingStatus.checkout.name);
+    //Change STATUS ROOM
+    await toolRoom.changeStatusArrayRooms(
+      bookingItem.rooms.map((r) => r.room),
+      RoomStatus.Cleaning.name
+    );
+    //Change STATUS RECEIPT
+    await toolReceipt.changeStatusBooking(booking, BookingStatus.checkout.name);
 
-    // //Send to customer email
-    // const customer = await Customer.findById(bookingItem.customer);
+    //Send to customer email
+    const customer = await Customer.findById(bookingItem.customer);
 
-    // const message = `
-    //           <div style="max-width: 700px; margin:auto; border: 8px solid #ddd; padding: 50px 20px; font-size: 110%;">
-    //           <h2 style="text-align: center; text-transform: uppercase; color: teal;">Thank to customer</h2>
-    //           <p> Dear <strong> ${customer.name}</strong>!</p>
-    //           <p>Congratulations on your successful payment ! Have a beautiful day! </p>
-    //           <p>Thank you for using our service! See you again on the closest day!</p>
-    //           </div>
-    //         `;
+    const message = `
+              <div style="max-width: 700px; margin:auto; border: 8px solid #ddd; padding: 50px 20px; font-size: 110%;">
+              <h2 style="text-align: center; text-transform: uppercase; color: teal;">Thank to customer</h2>
+              <p> Dear <strong> ${customer.name}</strong>!</p>
+              <p>Congratulations on your successful payment ! Have a beautiful day! </p>
+              <p>Thank you for using our service! See you again on the closest day!</p>
+              </div>
+            `;
 
-    // await sendEmail({
-    //   email: customer.email,
-    //   subject: `THANK YOU !`,
-    //   message,
-    // });
+    await sendEmail({
+      email: customer.email,
+      subject: `THANK YOU !`,
+      message,
+    });
 
     res.json({
       success: true,
