@@ -42,6 +42,7 @@ const createRoom = async (req, res) => {
         success: false,
         message: 'Room already taken',
       });
+
     //All good
     const newRoom = new Room({
       roomNumber,
@@ -334,7 +335,7 @@ const uploadImg = async (req, res) => {
         filePath: file.tempFilePath,
       });
       if (!!img) {
-        let src = img.webViewLink.replace('file/d/', 'thumbnail?id=');
+        let src = img.webViewLink.replace('file/d/', 'uc?id=');
         src = src.replace('/view?usp=drivesdk', '');
         imgList.push({ src, alt: file.name });
       }
@@ -352,7 +353,7 @@ const uploadImg = async (req, res) => {
 
     const roomUpdateCondition = { _id: roomId };
     const updated = {
-      images: [...images, ...imgList],
+      images: [...imgList, ...images],
     };
 
     const updatedRoom = await Room.findOneAndUpdate(
