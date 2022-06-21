@@ -442,11 +442,13 @@ const updateBooking = async (req, res) => {
 
     //Price
     const VAT = 10;
-    const totalPrice = (
-      (totalRoomCharge + serviceCharge + productCharge) *
-        (1 + VAT / 100 - discountCharge / 100) -
-      deposit
-    ).toFixed();
+    const totalPrice = Number(
+      parseFloat(
+        (totalRoomCharge + serviceCharge + productCharge) *
+          (1 + VAT / 100 - discountCharge / 100) -
+          deposit
+      ).toFixed(0)
+    );
 
     const roomList = rooms.map((room) => {
       return { room, checkInDate, checkOutDate };
@@ -499,24 +501,24 @@ const updateBooking = async (req, res) => {
 
     const bookingUpdateCondition = { _id: req.params.id };
 
-    let updatedBooking = await Booking.findOneAndUpdate(
-      bookingUpdateCondition,
-      updateBooking,
-      {
-        new: true,
-      }
-    );
-    //Change STATUS ROOM
-    const statusRoom =
-      status === BookingStatus.checkIn.name
-        ? RoomStatus.Occupied.name
-        : RoomStatus.Booking.name;
-    await toolRoom.changeStatusArrayRooms(rooms, statusRoom);
+    // let updatedBooking = await Booking.findOneAndUpdate(
+    //   bookingUpdateCondition,
+    //   updateBooking,
+    //   {
+    //     new: true,
+    //   }
+    // );
+    // //Change STATUS ROOM
+    // const statusRoom =
+    //   status === BookingStatus.checkIn.name
+    //     ? RoomStatus.Occupied.name
+    //     : RoomStatus.Booking.name;
+    // await toolRoom.changeStatusArrayRooms(rooms, statusRoom);
 
     res.json({
       success: true,
       message: 'Booking updated successfully',
-      updatedBooking,
+      updateBooking,
     });
   } catch (error) {
     console.log(error);
