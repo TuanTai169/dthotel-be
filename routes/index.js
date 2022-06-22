@@ -15,6 +15,7 @@ const receiptRouter = require('./api/receipt');
 const typeOfRoomRouter = require('./api/typeOfRoom');
 const convenienceRouter = require('./api/convenience');
 const couponRouter = require('./api/coupon');
+const paymentRouter = require('./api/payment');
 
 //API ROUTES
 router.use(`${api}/auth`, authRouter);
@@ -27,6 +28,7 @@ router.use(`${api}/receipt`, receiptRouter);
 router.use(`${api}/type-of-room`, typeOfRoomRouter);
 router.use(`${api}/convenience`, convenienceRouter);
 router.use(`${api}/coupon`, couponRouter);
+router.use(`${api}/payment`, paymentRouter);
 router.use(api, (req, res) =>
   res.status(404).json({
     success: false,
