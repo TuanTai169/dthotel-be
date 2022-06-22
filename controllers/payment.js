@@ -56,7 +56,10 @@ const createPaymentUrl = (req, res, next) => {
   vnp_Params['vnp_SecureHash'] = signed;
   vnpUrl += '?' + querystring.stringify(vnp_Params, { encode: false });
 
-  res.json(vnpUrl);
+  res.json({
+    success: true,
+    vnpUrl,
+  });
 };
 
 const getIpn = (req, res, next) => {
