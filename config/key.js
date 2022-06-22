@@ -8,6 +8,6 @@ module.exports = {
     vnp_TmnCode: '882D722Q',
     vnp_HashSecret: 'HYJBSMSSSNNIMDTAKRFAAMHMXRNNHUCP',
     vnp_Url: 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html',
-    vnp_ReturnUrl: 'http://localhost:5000/api/payment/vnpay_return',
+    vnp_ReturnUrl: 'http://localhost:3000/rooms',
   },
 };
