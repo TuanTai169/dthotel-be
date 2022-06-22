@@ -153,6 +153,9 @@ const createBooking = async (req, res) => {
               <h2 style="text-align: center; text-transform: uppercase; color: teal;">Thank to customer</h2>
               <p> Dear <strong> ${customer.name}</strong>!</p>
               <p> Booking Code:  <strong> ${code}</strong></p>
+              <p> Check-in date:  <strong> ${checkInDate}</strong></p>
+              <p> Deposit:  <strong> ${deposit} USD</strong></p>
+              <p> TotalPrice:  <strong> ${Number(totalPrice)} USD</strong></p>
               <p>Thank you booking for our hotel! See you again on the closest day!</p>
               </div>
             `;
@@ -339,7 +342,10 @@ const createBookingInWeb = async (req, res) => {
                <h2 style="text-align: center; text-transform: uppercase; color: teal;">Thank to customer</h2>
                <p> Dear <strong> ${customerCurrent.name}</strong>!</p>
                <p> Booking Code:  <strong> ${code}</strong></p>
-               <p>Thank you booking for our hotel! See you again on the closest day!</p>
+               <p> Check-in date:  <strong> ${checkInDate}</strong></p>
+               <p> Deposit:  <strong> ${deposit} USD</strong></p>
+               <p> TotalPrice:  <strong> ${Number(totalPrice)} USD</strong></p>
+               <p>Thank you using for our hotel! See you again on the closest day!</p>
                </div>
              `;
 
@@ -506,6 +512,9 @@ const createCheckIn = async (req, res) => {
               <h2 style="text-align: center; text-transform: uppercase; color: teal;">Thank to customer</h2>
               <p> Dear <strong> ${customer.name}</strong>!</p>
               <p> Booking Code:  <strong> ${code}</strong></p>
+              <p> Check-in date:  <strong> ${checkInDate}</strong></p>
+              <p> Deposit:  <strong> ${deposit} USD</strong></p>
+              <p> TotalPrice:  <strong> ${Number(totalPrice)} USD</strong></p>
               <p>Thank you booking for our hotel! See you again on the closest day!</p>
               </div>
             `;
