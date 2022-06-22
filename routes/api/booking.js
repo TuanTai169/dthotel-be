@@ -5,12 +5,17 @@ const verifyToken = require('../../middleware/authorization');
 // @route POST api/booking/
 // @decs CREATE BOOKING/CHECK-IN
 // @access Private
-router.post('/:book', verifyToken, bookingController.createBooking);
+router.post('/book', verifyToken, bookingController.createBooking);
 
 //  @route POST api/booking/
 // @decs CREATE BOOKING/CHECK-IN
 // @access Private
 router.post('/booking-in-web', bookingController.createBookingInWeb);
+
+// @route POST api/booking/
+// @decs CREATE CHECK-IN
+// @access Private
+router.post('/check-in', verifyToken, bookingController.createCheckIn);
 
 // @route GET api/booking/
 // @decs READ ALL BOOKING/CHECK-IN

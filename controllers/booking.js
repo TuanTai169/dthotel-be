@@ -74,10 +74,7 @@ const createBooking = async (req, res) => {
     const discountCharge = await toolRoom.calculateDiscount(discount);
 
     //Change status
-    let status =
-      req.params.book === 'check-in'
-        ? BookingStatus.checkIn.name
-        : BookingStatus.Booking.name;
+    let status = BookingStatus.Booking.name;
 
     //Price
     const VAT = 10;
@@ -318,7 +315,7 @@ const createBookingInWeb = async (req, res) => {
     const newBooking = new Booking({
       code,
       rooms: roomList,
-      customer: customerCurrent._id.toString(),
+      customer: customerCurrent._id,
       services,
       products,
       deposit,
@@ -355,6 +352,173 @@ const createBookingInWeb = async (req, res) => {
     res.json({
       success: true,
       message: `Booking successfully ! Please check info!`,
+      booking: newBooking,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+    });
+  }
+};
+
+const createCheckIn = async (req, res) => {
+  const {
+    rooms,
+    customer,
+    checkInDate,
+    checkOutDate,
+    services,
+    products,
+    deposit,
+    discount,
+  } = req.body;
+
+  try {
+    // Check booking exist
+    const checkStatus = await toolRoom.checkStatusRoom(checkInDate, rooms);
+
+    if (checkStatus === false)
+      return res.status(400).json({
+        success: false,
+        message: 'Room not ready on this day',
+      });
+
+    //Generate code
+    const code = 'DT' + Date.now().toString();
+
+    //Calculate diffInDays
+    const hourDiff = toolRoom.getNumberOfHour(checkInDate, checkOutDate);
+
+    //Calculate room's price
+    const roomCharge = await toolRoom.calculateRoomCharge(rooms);
+
+    // Calculate price
+    let totalRoomCharge = 0;
+    let earlyCheckIn = 0;
+    let lateCheckOut = 0;
+
+    if (hourDiff < 24) {
+      totalRoomCharge = await toolRoom.priceInHour(hourDiff, roomCharge);
+    } else {
+      const early = await toolRoom.earlyCheckIn(checkInDate, roomCharge);
+      const late = await toolRoom.lateCheckOut(checkOutDate, roomCharge);
+
+      earlyCheckIn = early.price;
+      lateCheckOut = late.price;
+      totalRoomCharge =
+        ((hourDiff - early.hour - late.hour) * roomCharge) / 24 +
+        earlyCheckIn +
+        lateCheckOut;
+    }
+
+    // //Calculate service's price
+    const serviceCharge = await toolService.calculateServiceCharge(
+      services,
+      'service'
+    );
+    const productCharge = await toolService.calculateServiceCharge(
+      products,
+      'product'
+    );
+
+    // Calculate discount
+    const discountCharge = await toolRoom.calculateDiscount(discount);
+
+    //Change status
+    let status = BookingStatus.checkIn.name;
+
+    //Price
+    const VAT = 10;
+
+    const totalPrice = Number(
+      parseFloat(
+        (totalRoomCharge + serviceCharge + productCharge) *
+          (1 + VAT / 100 - discountCharge / 100) -
+          deposit
+      ).toFixed(2)
+    );
+
+    const roomList = rooms.map((room) => {
+      return { room, checkInDate, checkOutDate };
+    });
+
+    // Save to object detail
+    const listRoom = await toolRoom.getAllInfoRoom(rooms);
+    const customerCurrent = await Customer.findById(customer).select(
+      'name email phone idNumber address'
+    );
+    const listService = await toolService.getAllInfoService(
+      services.map((x) => x.service)
+    );
+    const listProduct = await toolService.getAllInfoService(
+      products.map((x) => x.product)
+    );
+    const detailDiscount = await Coupon.findById(discount).select(
+      'code discount desc'
+    );
+
+    const detail = {
+      code,
+      rooms: listRoom,
+      customer: customerCurrent,
+      services: listService,
+      products: listProduct,
+      deposit,
+      discount: detailDiscount,
+      checkInDate,
+      checkOutDate,
+      earlyCheckIn,
+      lateCheckOut,
+      totalPrice: Number(totalPrice),
+    };
+
+    const newBooking = new Booking({
+      code,
+      rooms: roomList,
+      customer,
+      services,
+      products,
+      deposit,
+      discount,
+      earlyCheckIn,
+      lateCheckOut,
+      totalPrice,
+      status,
+      detail,
+    });
+
+    await newBooking.save();
+
+    //Change STATUS ROOM
+    const statusOfRoom =
+      status === RoomStatus.Booking.name
+        ? RoomStatus.Booking.name
+        : RoomStatus.Occupied.name;
+    await toolRoom.changeStatusArrayRooms(rooms, statusOfRoom);
+
+    //Send to customer email
+    const customerExist = await Customer.findById(customer);
+
+    const message = `
+              <div style="max-width: 700px; margin:auto; border: 8px solid #ddd; padding: 50px 20px; font-size: 110%;">
+              <h2 style="text-align: center; text-transform: uppercase; color: teal;">Thank to customer</h2>
+              <p> Dear <strong> ${customer.name}</strong>!</p>
+              <p> Booking Code:  <strong> ${code}</strong></p>
+              <p>Thank you booking for our hotel! See you again on the closest day!</p>
+              </div>
+            `;
+
+    await sendEmail({
+      email: customerExist.email,
+      subject: `THANK YOU BOOKING!`,
+      message,
+    });
+
+    res.json({
+      success: true,
+      message: `${status} successfully`,
       booking: newBooking,
     });
   } catch (error) {
@@ -745,6 +909,7 @@ const changeRoom = async (req, res) => {
 module.exports = {
   createBooking,
   createBookingInWeb,
+  createCheckIn,
   getAllBooking,
   getBookingById,
   updateBooking,
