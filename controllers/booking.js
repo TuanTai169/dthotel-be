@@ -224,6 +224,20 @@ const createBookingInWeb = async (req, res) => {
         numberOfPeople,
       });
       await newCustomer.save();
+    } else {
+      let updateCustomer = {
+        name,
+        email,
+        phone,
+        idNumber,
+        address,
+        numberOfPeople,
+      };
+
+      const cusUpdatedCondition = { _id: existedCustomer._id };
+      await Customer.findOneAndUpdate(cusUpdatedCondition, updateCustomer, {
+        new: true,
+      });
     }
 
     const customerCurrent = await Customer.findOne({ email });
