@@ -212,7 +212,7 @@ const createBookingInWeb = async (req, res) => {
       });
 
     //Check customer existed
-    const existedCustomer = await Customer.findOne({ idNumber });
+    const existedCustomer = await Customer.findOne({ email });
     if (!existedCustomer) {
       //All good
       const newCustomer = new Customer({
@@ -226,7 +226,7 @@ const createBookingInWeb = async (req, res) => {
       await newCustomer.save();
     }
 
-    const customerCurrent = await Customer.findOne({ idNumber });
+    const customerCurrent = await Customer.findOne({ email });
 
     //Generate code
     const code = 'DT' + Date.now().toString();

@@ -19,9 +19,9 @@ const userValidation = (data) => {
 //Create Customer Validation
 const customerValidation = (data) => {
   const schema = Joi.object({
-    name: Joi.string().min(6).required(),
-    email: Joi.string().min(10).required().email(),
-    phone: Joi.string().min(10).max(10).required(),
+    name: Joi.string().min(6),
+    email: Joi.string().min(10).email(),
+    phone: Joi.string().min(10).max(10),
     idNumber: Joi.string().min(9).max(12),
     address: Joi.string(),
     numberOfPeople: Joi.object(),
