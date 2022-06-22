@@ -8,6 +8,6 @@ module.exports = {
     vnp_TmnCode: '882D722Q',
     vnp_HashSecret: 'HYJBSMSSSNNIMDTAKRFAAMHMXRNNHUCP',
     vnp_Url: 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html',
-    vnp_ReturnUrl: 'http://localhost:3000/rooms',
+    vnp_ReturnUrl: 'https://dthotel-kltn.vercel.app/booking-success',
   },
 };
