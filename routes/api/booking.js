@@ -10,7 +10,7 @@ router.post('/:book', verifyToken, bookingController.createBooking);
 //  @route POST api/booking/
 // @decs CREATE BOOKING/CHECK-IN
 // @access Private
-router.post('/', bookingController.createBookingInWeb);
+router.post('/booking-in-web', bookingController.createBookingInWeb);
 
 // @route GET api/booking/
 // @decs READ ALL BOOKING/CHECK-IN
