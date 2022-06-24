@@ -87,6 +87,10 @@ const RoomSchema = new Schema(
         default: imageDefault,
       },
     ],
+    cleaner: {
+      type: Schema.Types.ObjectId,
+      ref: 'users',
+    },
     isDeleted: {
       type: Boolean,
       default: false,

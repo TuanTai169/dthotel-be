@@ -25,6 +25,7 @@ const createRoom = async (req, res) => {
     convenience,
     images,
     status,
+    cleaner,
   } = req.body;
 
   //Validation
@@ -56,6 +57,7 @@ const createRoom = async (req, res) => {
       convenience: convenience || [],
       images: images || imageDefault,
       status: status || RoomStatus.Ready.name,
+      cleaner,
     });
 
     await newRoom.save();
@@ -166,6 +168,7 @@ const updateRoom = async (req, res) => {
     convenience,
     images,
     status,
+    cleaner,
   } = req.body;
 
   const id = req.params.id;
@@ -196,6 +199,7 @@ const updateRoom = async (req, res) => {
       convenience,
       images,
       status,
+      cleaner,
     };
 
     const roomUpdatedCondition = { _id: id };

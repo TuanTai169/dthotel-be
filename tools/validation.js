@@ -42,6 +42,7 @@ const roomValidation = (data) => {
     convenience: Joi.array(),
     status: Joi.string(),
     images: Joi.array(),
+    cleaner: Joi.objectId(),
   });
   return schema.validate(data);
 };

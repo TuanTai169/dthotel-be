@@ -30,7 +30,7 @@ module.exports = {
   }),
 
   userRoles: Object.freeze({
-    Staff: { name: 'Staff', value: 0 },
+    Cleaner: { name: 'Cleaner', value: 0 },
     Employee: { name: 'Employee', value: 1 },
     Manager: { name: 'Manager', value: 2 },
     Admin: { name: 'Admin', value: 3 },
