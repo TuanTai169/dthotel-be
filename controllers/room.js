@@ -86,6 +86,10 @@ const getAllRooms = async (req, res) => {
         path: 'convenience',
         select: '-isDeleted -createdAt -updatedAt  -__v',
       })
+      .populate({
+        path: 'cleaner',
+        select: '-isDeleted -createdAt -updatedAt',
+      })
       .select('-createdAt -updatedAt -__v -isDeleted');
     res.json({
       success: true,
@@ -109,6 +113,10 @@ const getRoomByFloor = async (req, res) => {
       })
       .populate({
         path: 'convenience',
+        select: '-isDeleted -createdAt -updatedAt',
+      })
+      .populate({
+        path: 'cleaner',
         select: '-isDeleted -createdAt -updatedAt',
       })
       .select('-createdAt -updatedAt');
