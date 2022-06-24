@@ -19,6 +19,11 @@ router.get('/', roomController.getAllRooms);
 // @access Private
 router.get('/all-by-floor/:floor', roomController.getRoomByFloor);
 
+// @route GET api/room/:floor
+// @decs SORT room by cleaner
+// @access Private
+router.get('/cleaner/:id', verifyToken, roomController.getRoomsByCleanerId);
+
 // @route GET api/room/:id
 // @decs READ 1 ROOM
 // @access Private

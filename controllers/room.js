@@ -133,6 +133,26 @@ const getRoomByFloor = async (req, res) => {
   }
 };
 
+const getRoomsByCleanerId = async (req, res) => {
+  try {
+    const rooms = await Room.find({
+      isDeleted: false,
+      status: RoomStatus.Cleaning.name,
+      cleaner: req.params.id,
+    }).select('name roomNumber floor price');
+    res.json({
+      success: true,
+      rooms,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+    });
+  }
+};
+
 const getRoomById = async (req, res) => {
   try {
     const room = await Room.findById(req.params.id)
@@ -453,4 +473,5 @@ module.exports = {
   changePriceRoom,
   uploadImg,
   checkAvailable,
+  getRoomsByCleanerId,
 };
