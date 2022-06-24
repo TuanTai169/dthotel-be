@@ -139,7 +139,7 @@ const getRoomsByCleanerId = async (req, res) => {
       isDeleted: false,
       status: RoomStatus.Cleaning.name,
       cleaner: req.params.id,
-    }).select('name roomNumber floor price');
+    }).select('name roomNumber floor price status');
     res.json({
       success: true,
       rooms,
