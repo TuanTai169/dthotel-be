@@ -161,7 +161,7 @@ const createBooking = async (req, res) => {
             `;
 
     await sendEmail({
-      email: customerExist.email,
+      email: customerCurrent.email,
       subject: `THANK YOU BOOKING!`,
       message,
     });
@@ -512,10 +512,7 @@ const createCheckIn = async (req, res) => {
     await newBooking.save();
 
     //Change STATUS ROOM
-    const statusOfRoom =
-      status === RoomStatus.Booking.name
-        ? RoomStatus.Booking.name
-        : RoomStatus.Occupied.name;
+    const statusOfRoom = RoomStatus.Occupied.name;
     await toolRoom.changeStatusArrayRooms(rooms, statusOfRoom);
 
     //Send to customer email
@@ -534,7 +531,7 @@ const createCheckIn = async (req, res) => {
             `;
 
     await sendEmail({
-      email: customerExist.email,
+      email: customerCurrent.email,
       subject: `THANK YOU BOOKING!`,
       message,
     });

@@ -259,7 +259,7 @@ const uploadAvatar = async (req, res) => {
       filePath: file.tempFilePath,
     });
 
-    let src = img.webViewLink.replace('file/d/', 'thumbnail?id=');
+    let src = img.webViewLink.replace('file/d/', 'uc?id=');
     src = src.replace('/view?usp=drivesdk', '');
 
     const userUpdateCondition = { _id: userId };
