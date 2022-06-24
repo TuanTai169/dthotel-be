@@ -146,12 +146,12 @@ const createBooking = async (req, res) => {
     await toolRoom.changeStatusArrayRooms(rooms, statusOfRoom);
 
     //Send to customer email
-    const customerExist = await Customer.findById(customer);
+    // const customerExist = await Customer.findById(customer);
 
     const message = `
               <div style="max-width: 700px; margin:auto; border: 8px solid #ddd; padding: 50px 20px; font-size: 110%;">
               <h2 style="text-align: center; text-transform: uppercase; color: teal;">Thank to customer</h2>
-              <p> Dear <strong> ${customer.name}</strong>!</p>
+              <p> Dear <strong> ${customerCurrent.name}</strong>!</p>
               <p> Booking Code:  <strong> ${code}</strong></p>
               <p> Check-in date:  <strong> ${checkInDate}</strong></p>
               <p> Deposit:  <strong> ${deposit} USD</strong></p>
@@ -519,12 +519,12 @@ const createCheckIn = async (req, res) => {
     await toolRoom.changeStatusArrayRooms(rooms, statusOfRoom);
 
     //Send to customer email
-    const customerExist = await Customer.findById(customer);
+    // const customerExist = await Customer.findById(customer);
 
     const message = `
               <div style="max-width: 700px; margin:auto; border: 8px solid #ddd; padding: 50px 20px; font-size: 110%;">
               <h2 style="text-align: center; text-transform: uppercase; color: teal;">Thank to customer</h2>
-              <p> Dear <strong> ${customer.name}</strong>!</p>
+              <p> Dear <strong> ${customerCurrent.name}</strong>!</p>
               <p> Booking Code:  <strong> ${code}</strong></p>
               <p> Check-in date:  <strong> ${checkInDate}</strong></p>
               <p> Deposit:  <strong> ${deposit} USD</strong></p>
