@@ -136,6 +136,10 @@ const getRoomById = async (req, res) => {
         path: 'convenience',
         select: '-isDeleted -createdAt -updatedAt',
       })
+      .populate({
+        path: 'cleaner',
+        select: '-isDeleted -createdAt -updatedAt',
+      })
       .select('-createdAt -updatedAt');
     if (!room)
       res.json({
