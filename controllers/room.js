@@ -1,5 +1,7 @@
 const _ = require('lodash');
 const Room = require('../models/Room');
+const Booking = require('../models/Booking');
+
 const { roomValidation } = require('../tools/validation');
 const toolRoom = require('../tools/roomTool');
 const {
@@ -10,7 +12,6 @@ const {
   RoomStatus,
 } = require('../config/constants');
 const { uploadImage } = require('../utils/google-api');
-const Booking = require('../models/Booking');
 
 const createRoom = async (req, res) => {
   const {
@@ -430,7 +431,9 @@ const checkAvailable = async (req, res) => {
       .select('-createdAt -updatedAt');
 
     const listRoomIsAvailable = allRoom
-      .filter((r) => r.status === RoomStatus.Ready.name)
+      .filter((r) => r.status !== RoomStatus.Occupied.name)
+      .filter((r) => r.status !== RoomStatus.Fixing.name)
+      .filter((r) => r.status !== RoomStatus.Cleaning.name)
       .filter((r) => r.capacity.adult <= adult);
 
     const listAvailable = [];
@@ -448,10 +451,42 @@ const checkAvailable = async (req, res) => {
       });
     }
 
+    const listIsBooking = listAvailable.filter(
+      (r) => r.status === RoomStatus.Booking.name
+    );
+
+    const listRoomInBooking = await Booking.find({ isDeleted: false }).select(
+      'rooms'
+    );
+    const listRoomInBookingMapToArray = [];
+    listRoomInBooking.forEach((item) => {
+      listRoomInBookingMapToArray.push(...item.rooms);
+    });
+
+    const roomIsBookingAndInValid = listRoomInBookingMapToArray.filter(
+      (room) => {
+        const date = new Date(checkInDate).setHours(12, 0);
+        if (date > room?.checkInDate && date < room?.checkOutDate) {
+          return {
+            room: room.room,
+          };
+        }
+      }
+    );
+
+    const listRoomAvailable = [...listAvailable];
+    for (var i = 0; i < listAvailable.length; i++) {
+      roomIsBookingAndInValid.forEach((r) => {
+        if (listAvailable[i]._id.toString() === r.room.toString()) {
+          listRoomAvailable.splice(i, 1);
+        }
+      });
+    }
+
     res.json({
       success: true,
       message: 'Check available successfully',
-      listRoom: listAvailable,
+      listRoom: listRoomAvailable,
     });
   } catch (error) {
     console.log(error);
