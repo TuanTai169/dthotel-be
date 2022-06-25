@@ -3,14 +3,17 @@ const moment = require('moment');
 const Booking = require('../models/Booking');
 const Receipt = require('../models/Receipt');
 const Customer = require('../models/Customer');
+const TypeOfRoom = require('../models/TypeOfRoom');
+const Service = require('../models/Service');
+const Room = require('../models/Room');
+const User = require('../models/User');
 
 const toolRoom = require('../tools/roomTool');
 const toolReceipt = require('../tools/receiptTool');
 const { sendEmail } = require('../utils/google-api');
+const { sendSMS } = require('../utils/sendSMS');
 const { receiptValidation } = require('../tools/validation');
 const { RoomStatus, BookingStatus } = require('../config/constants');
-const TypeOfRoom = require('../models/TypeOfRoom');
-const Service = require('../models/Service');
 
 const createReceipt = async (req, res) => {
   const { booking, paidOut, refund, modeOfPayment } = req.body;
@@ -54,13 +57,20 @@ const createReceipt = async (req, res) => {
       modeOfPayment,
     });
 
-    await newReceipt.save();
+    // await newReceipt.save();
+
+    // Send SMS to Cleaner
+    const listRoom = bookingItem.rooms.map((r) => r.room);
+    const listIdCleaner = await getAllIdCleaner(listRoom);
+    const listInfoCleaner = await getAllInfoCleaner(listIdCleaner);
+    const listConvertCleaner = getUniqueListBy(listInfoCleaner, 'phone');
+
+    listConvertCleaner.forEach(async (item) => {
+      await sendSMS(item.name, item.phone);
+    });
 
     //Change STATUS ROOM
-    await toolRoom.changeStatusArrayRooms(
-      bookingItem.rooms.map((r) => r.room),
-      RoomStatus.Cleaning.name
-    );
+    await toolRoom.changeStatusArrayRooms(listRoom, RoomStatus.Cleaning.name);
     //Change STATUS RECEIPT
     await toolReceipt.changeStatusBooking(booking, BookingStatus.checkout.name);
 
@@ -96,12 +106,31 @@ const createReceipt = async (req, res) => {
   }
 };
 
+const getAllIdCleaner = async (rooms) => {
+  const promise = rooms.map((room) => {
+    return Room.findById(room).select('cleaner');
+  });
+  return await Promise.all(promise);
+};
+
+const getAllInfoCleaner = async (listId) => {
+  const promise = listId.map((user) => {
+    return User.findById(user.cleaner).select('name phone');
+  });
+  return await Promise.all(promise);
+};
+
+function getUniqueListBy(arr, key) {
+  return [...new Map(arr.map((item) => [item[key], item])).values()];
+}
+
 const getAllReceipts = async (req, res) => {
   try {
     const receipts = await Receipt.find({ isDeleted: false }).populate({
       path: 'booking',
       select: 'detail',
     });
+
     res.json({
       success: true,
       receipts,
