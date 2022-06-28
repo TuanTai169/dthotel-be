@@ -251,6 +251,7 @@ const deleteUser = async (req, res) => {
 
 const uploadAvatar = async (req, res) => {
   const userId = req.params.id;
+
   try {
     const file = req.files.file;
 
@@ -259,7 +260,7 @@ const uploadAvatar = async (req, res) => {
       filePath: file.tempFilePath,
     });
 
-    let src = img.webViewLink.replace('file/d/', 'uc?id=');
+    let src = img?.webViewLink.replace('file/d/', 'uc?id=');
     src = src.replace('/view?usp=drivesdk', '');
 
     const userUpdateCondition = { _id: userId };
@@ -279,6 +280,7 @@ const uploadAvatar = async (req, res) => {
       updatedImg: { src, alt: file.name },
     });
   } catch (error) {
+    console.log(error);
     res.status(500).json({
       success: false,
       message: 'Internal server error',
