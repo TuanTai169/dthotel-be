@@ -115,7 +115,7 @@ const forgotPassword = async (req, res) => {
       return res.status(404).json({
         success: false,
         message:
-          'Your request could not be processed as entered. Please try again.',
+          'User not found. Your request could not be processed as entered. Please try again.',
       });
 
     // Generate the random reset token

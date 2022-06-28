@@ -63,16 +63,16 @@ module.exports = {
     EMAIL_HOST: 'smtp.gmail.com',
     EMAIL_PORT: 465,
     EMAIL_USERNAME: 'nguyentuantai412@gmail.com',
-    EMAIL_PASSWORD: 'tuantai412',
+    EMAIL_PASSWORD: 'TuanTai@169',
   },
 
   googleOath2Config: {
     CLIENT_ID:
-      '47620239037-e8eb239e11n69e62uv73ehqra5rqp4n0.apps.googleusercontent.com',
-    CLIENT_SECRET: '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',
+      '376835607580-9homes1bicj9mtr0651onhoe8q3utrr9.apps.googleusercontent.com',
+    CLIENT_SECRET: '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',
     REFRESH_TOKEN_EMAIL:
-      '1//04ZkSOk24aVJqCgYIARAAGAQSNwF-L9IrZ9kZnKrQCpWHmVMP1QWAhS7SOyKvFhZhVZY39LmGSv_DMVDZYF82xP1HCnDkKpR_agk',
+      '1//042L1zzkrqkx6CgYIARAAGAQSNwF-L9IrqF_f8Uy1EIfq9uu1L4BX0xLgD66rs5FOtbuk-IyW-TJCdofEyTLTTzBGm5MNsfVKFHg',
     REFRESH_TOKEN_DRIVE:
-      '1//04gyeaYOTGdqyCgYIARAAGAQSNwF-L9IrDAwsjeoWircHb02HeuKv-gnFLHbMnYqWOaFZaziJa0uBGTebTMsPXZHElLvIxMrqBMg',
+      '1//04FPSHprALMUCCgYIARAAGAQSNwF-L9Ir-7mfvF0BTkvNAJqO3_FA_WrSp0frSLbQZok7K-G7yZErDkaN85FnHfljGORhbwOb9EU',
   },
 };
