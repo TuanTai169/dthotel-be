@@ -2,8 +2,8 @@ require('dotenv').config();
 
 const sendSMS = async (name, numberPhone) => {
   try {
-    const accountSid = process.env.TWILIO_ACCOUNT_SID;
-    const authToken = process.env.TWILIO_AUTH_TOKEN;
+    const accountSid = 'AC697abba4f0f6f204fc1ecd4a71575e88';
+    const authToken = '543c2bb72cefd9d11667b9bba964b372';
     const client = require('twilio')(accountSid, authToken);
 
     let convertPhone = numberPhone;
