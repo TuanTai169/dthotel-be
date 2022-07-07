@@ -57,7 +57,7 @@ const createReceipt = async (req, res) => {
       modeOfPayment,
     });
 
-    // await newReceipt.save();
+    await newReceipt.save();
 
     // Send SMS to Cleaner
     const listRoom = bookingItem.rooms.map((r) => r.room);
